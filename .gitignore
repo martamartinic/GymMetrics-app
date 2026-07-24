@@ -24,3 +24,12 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+
+# Android (Capacitor)
+/src-capacitor/android/.gradle
+/src-capacitor/android/build
+/src-capacitor/android/app/build
+/src-capacitor/android/local.properties
+
+/src-capacitor/android/.idea
