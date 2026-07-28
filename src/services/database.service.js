@@ -1,3 +1,6 @@
+//ova datoteka služi kao centralno mjesto kroz koje će aplikacija komunicirati sa sqlite bazom
+
+
 //uvoz SQLite plugina
 import { CapacitorSQLite } from '@capacitor-community/sqlite'; //CapacitorSQLite je objekt koji daje plugin. //sav razgovor sa SQLite pluginom ide preko CapacitorSQLite objekta.
 
@@ -6,7 +9,7 @@ class DatabaseService { //stvaranje klase u kojoj će biti funkcije create table
     
     db=null; //objekt koji predstavlja otvorenu vezu prema SQLite bazi trenutno ima praznu varijablu, nije spojena na bazu još  //varijabla objekta koja će nakon inicijalizacije sadržavati vezu prema SQLite bazi
 
-    //metoda za inicijalizaciju baze, spremanje veze kad se otvori baza...
+    //metoda za inicijalizaciju baze, u kojoj se kreira konekcija sprema se u this.db, otvara se konekcija, uključuje se FK provjera i poziva se metoda createTables
     async initializeDatabase() {
 
         //varijabla koja će pamtit vezu kad se otvori baza //ova varijabla je veza s bazom imamo databaseService --> db -->SQLite baza //db varijabla koja pripada ovom objektu, ne znači neka globalna varijabla nego varijabla ovog objekta //riječ this znači moj -->moja konekcija s SQLite bazom (konekcija s bazom ovog objekta ne nekog drugog)
@@ -24,7 +27,7 @@ class DatabaseService { //stvaranje klase u kojoj će biti funkcije create table
         //uključivanje provjere FK ograničenja u SQLite-u za konkretnu konekciju --da se lakše testira pr. on delete restrict da sqlite stvarno provodi to ograničenje
         await this.db.execute("PRAGMA foreign_keys = ON");
 
-        //kreiranje tablica ako još ne postoje
+        //kreiranje tablica ako još ne postoje sada kada je baza otvorena
         await this.createTables();
     
     } //zagrada async initializeDatabase()
@@ -126,11 +129,11 @@ class DatabaseService { //stvaranje klase u kojoj će biti funkcije create table
                 ID_prehrane INTEGER PRIMARY KEY AUTOINCREMENT, 
                 ID_klijenta INTEGER NOT NULL,
                 Dnevne_kalorije_kcal INTEGER NOT NULL,
-                Proteini_g INTEGER DEFAULT 0,
-                Ugljikohidrati_g INTEGER DEFAULT 0,
-                Secer_g INTEGER DEFAULT 0,
-                Masti_g INTEGER DEFAULT 0,
-                Vlakna_g INTEGER DEFAULT 0,
+                Proteini_g INTEGER,
+                Ugljikohidrati_g INTEGER,
+                Secer_g INTEGER,
+                Masti_g INTEGER,
+                Vlakna_g INTEGER,
 
                 FOREIGN KEY (ID_klijenta)
                     REFERENCES Klijenti(ID_klijenta)
@@ -344,7 +347,7 @@ class DatabaseService { //stvaranje klase u kojoj će biti funkcije create table
 
 //primjerak - objekt 
 //objekt je ono što stvarno postoji u memoriji
-const databaseService = new DatabaseService(); // Kreiramo jedanput jednu instancu DatabaseService koju će koristiti cijela aplikacija kako je ne bismo trebali kreirati više puta --jedna instancu koju će koristit cijela app
+const databaseService = new DatabaseService(); // Kreiramo jedanput jednu instancu DatabaseService koju će koristiti cijela aplikacija kako je ne bismo trebali kreirati više puta --jedna instancu koju će koristit cijela app //ovo je konkretna instanca klase
 
 export default databaseService; //export koji omogućuje da se bilo gdje u aplikaciji preko import databaseService from 'src/services/database.service'; pozove kreiran database servis //omogućuje drugim datotekama da importaju ovu jednu instancu DatabaseService servisa
 
