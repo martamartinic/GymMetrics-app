@@ -9,7 +9,7 @@ export default async () => {
     try{
            console.log('1. Pokretanje inicijalizacije baze...');
 
-        ///poziva se metoda koja otvara bazu, uključuje FK provjeru i kreira tablice
+        ///poziva se metoda koja prilikom pokretanja aplikacije inicijaliziraj sqlite -- samo ako je cijeli initialize database uspješno završio
         await databaseService.initializeDatabase();
 
      //poruka se ispisuje ako je inicijalizacija uspješno završila

@@ -369,70 +369,69 @@ export default databaseService; //export koji omogućuje da se bilo gdje u aplik
 //PRIVREMENO OVA VERZIJA RADI TESTIRANJA NA EMULATORU DAL DELA OVAJ DIO:
 
 import {
-  CapacitorSQLite,
-  SQLiteConnection
+  CapacitorSQLite,  //stvarni capacitor plugin koji komunicira s native sqlite dijelom androida
+  SQLiteConnection  //pomoćna klasa koja olakšava upravljanje sqlite konekcijama
 } from '@capacitor-community/sqlite';
 
 
 class DatabaseService {
 
  //spremat će se otvorena konekcija prema bazi
-  db = null;
+  db = null;  //trenutno ovaj servis nema konekciju prema bazi
 
   // SQLiteConnection je pomoćni objekt koji upravlja konekcijama.
-  sqlite = new SQLiteConnection(CapacitorSQLite);
+  sqlite = new SQLiteConnection(CapacitorSQLite);  //objekt koji upravlja sql konekcijama
 
   // INICIJALIZACIJA BAZE
 
-  async initializeDatabase() {
+  async initializeDatabase() {   ///glavna metoda koju poziva src/boot/database.js
 
     console.log('A. Pokretanje SQLite inicijalizacije...');
 
 
-    // Provjera postoji li već konekcija
+    // Provjera stanja postojećih sql konekcija
     //Provjera jesu li postojeće sqlite konekcije i dalje konzistentne, znači da javascript/quasar dio app uspješno komunicira s native capacitor sqlite pluginom
-    const consistency = await this.sqlite.checkConnectionsConsistency();
+    const consistency = await this.sqlite.checkConnectionsConsistency();    //await radi čekanja da se prvo ovo izvrši prije nastavljanja na druge operacije
 
     console.log('B. Provjera SQLite konekcije:', consistency);
 
-    //provjera postoji li već konekcija prema gymMetrics bazi
+    //provjera postoji li već konekcija prema gymMetrics bazi //provjera postoji li gymMetrics
     const connectionExists =
       await this.sqlite.isConnection(
         'gymMetrics',
-        false
+        false  //označava da se ne traži read-only konekcija
       );
 
     console.log('C. Postoji li već konekcija:', connectionExists);
 
 
-     //ako konekcija postoji dohvaća se postojeća konekcija
+     //ako konekcija već postoji, ne stvara se nova konkecija umjesto toga dohvaća se postojeća
     if (connectionExists.result) {
 
       console.log(
         'D. Dohvaćanje postojeće konekcije...'
       );
 
-      this.db =
-        await this.sqlite.retrieveConnection(
+      this.db =                                //tu se sprema stvarna/postojeća konekcija 
+        await this.sqlite.retrieveConnection(   //retrieve connection služi za dohvat postojeće konekcije za gymMetrics
           'gymMetrics',
           false
         );
 
     } //if zagrada
-    else {
+    else {  //ako konekcija uopće ne postoji onda se stvara nova konekcija
 
-      //ako ne postoji onda se stvara nova konekcija
       console.log(
         'D. Kreiranje nove konekcije...'
       );
 
-      this.db =
-        await this.sqlite.createConnection( 
-          'gymMetrics',
-          false,
-          'no-encryption',
-          1,
-          false
+      this.db =    //nova konekcija s parametrima:
+        await this.sqlite.createConnection(   //createConnection kreira novu konekciju
+          'gymMetrics',     //ime baze
+          false,            ///nije read-only
+          'no-encryption', //baza nije šifrirana
+          1,                ///verzija baze
+          false             ///nije read-only
         );
     } //else zagrada
 
@@ -440,7 +439,7 @@ class DatabaseService {
     console.log('E. Konekcija kreirana/dohvaćena.');
 
      //otvara se baza
-    await this.db.open();
+    await this.db.open();   //sad tek se stvarno otvara baza kako bi se nad njom izvršale sql naredbe --> prethodno je samo izrada/dohvat konekcije
 
     console.log(
       'F. Baza gymMetrics otvorena.'
@@ -462,7 +461,7 @@ class DatabaseService {
 
     console.log('G. CREATE TABLE naredbe završene.');
 
-    // Dohvaćamo popis tablica iz SQLite baze
+    // Dohvaćamo popis tablica koje postoje u bazi iz SQLite plugin-a
     const tables = await this.db.getTableList();
 
     console.log('H. Tablice u bazi:', tables);
