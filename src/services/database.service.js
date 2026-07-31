@@ -1,5 +1,6 @@
-//ova datoteka služi kao centralno mjesto kroz koje će aplikacija komunicirati sa sqlite bazom
+/*
 
+//ova datoteka služi kao centralno mjesto kroz koje će aplikacija komunicirati sa sqlite bazom
 
 //uvoz SQLite plugina
 import { CapacitorSQLite } from '@capacitor-community/sqlite'; //CapacitorSQLite je objekt koji daje plugin. //sav razgovor sa SQLite pluginom ide preko CapacitorSQLite objekta.
@@ -12,6 +13,8 @@ class DatabaseService { //stvaranje klase u kojoj će biti funkcije create table
     //metoda za inicijalizaciju baze, u kojoj se kreira konekcija sprema se u this.db, otvara se konekcija, uključuje se FK provjera i poziva se metoda createTables
     async initializeDatabase() {
 
+        console.log('A. Kreiranje konekcije...');
+
         //varijabla koja će pamtit vezu kad se otvori baza //ova varijabla je veza s bazom imamo databaseService --> db -->SQLite baza //db varijabla koja pripada ovom objektu, ne znači neka globalna varijabla nego varijabla ovog objekta //riječ this znači moj -->moja konekcija s SQLite bazom (konekcija s bazom ovog objekta ne nekog drugog)
         this.db= await CapacitorSQLite.createConnection( //stvara vezu prema bazi gymMetrics ili dohvaća vezu prema toj bazi 
             "gymMetrics", //ime baze //na android uređaju nastat će gymMetrics.db
@@ -21,14 +24,21 @@ class DatabaseService { //stvaranje klase u kojoj će biti funkcije create table
             false //nije riječ o read-only nego će se baza moći mijenjati (upistivati, ažurirati, brisati podatke)
         ); //zagrada this.db 
 
+        console.log('B. Konekcija kreirana.');
 
         await this.db.open(); //otvaranje prethodno kreirane veze prema bazi //Bez open() nijedan SQL neće raditi. ////otvara vezu prema bazi kako bi se nad njom mogli izvršavati SQL upiti
     
+       console.log('C. Baza otvorena.');
+       
         //uključivanje provjere FK ograničenja u SQLite-u za konkretnu konekciju --da se lakše testira pr. on delete restrict da sqlite stvarno provodi to ograničenje
         await this.db.execute("PRAGMA foreign_keys = ON");
 
+        console.log('D. FK provjera uključena.');
+
         //kreiranje tablica ako još ne postoje sada kada je baza otvorena
         await this.createTables();
+
+        console.log('E. CREATE TABLE naredbe završene.');
     
     } //zagrada async initializeDatabase()
 
@@ -353,3 +363,128 @@ export default databaseService; //export koji omogućuje da se bilo gdje u aplik
 
 
 //initializeDatabase() je metoda kojom se otvara veza s bazom i potrebna je prije izvršavanja SQL upita (select, insert...) //poziva se pri pokretanju aplikacije 
+
+*/
+
+//PRIVREMENO OVA VERZIJA RADI TESTIRANJA NA EMULATORU DAL DELA OVAJ DIO:
+
+import {
+  CapacitorSQLite,
+  SQLiteConnection
+} from '@capacitor-community/sqlite';
+
+
+class DatabaseService {
+
+ //spremat će se otvorena konekcija prema bazi
+  db = null;
+
+  // SQLiteConnection je pomoćni objekt koji upravlja konekcijama.
+  sqlite = new SQLiteConnection(CapacitorSQLite);
+
+  // INICIJALIZACIJA BAZE
+
+  async initializeDatabase() {
+
+    console.log('A. Pokretanje SQLite inicijalizacije...');
+
+
+    // Provjera postoji li već konekcija
+    //Provjera jesu li postojeće sqlite konekcije i dalje konzistentne, znači da javascript/quasar dio app uspješno komunicira s native capacitor sqlite pluginom
+    const consistency = await this.sqlite.checkConnectionsConsistency();
+
+    console.log('B. Provjera SQLite konekcije:', consistency);
+
+    //provjera postoji li već konekcija prema gymMetrics bazi
+    const connectionExists =
+      await this.sqlite.isConnection(
+        'gymMetrics',
+        false
+      );
+
+    console.log('C. Postoji li već konekcija:', connectionExists);
+
+
+     //ako konekcija postoji dohvaća se postojeća konekcija
+    if (connectionExists.result) {
+
+      console.log(
+        'D. Dohvaćanje postojeće konekcije...'
+      );
+
+      this.db =
+        await this.sqlite.retrieveConnection(
+          'gymMetrics',
+          false
+        );
+
+    } //if zagrada
+    else {
+
+      //ako ne postoji onda se stvara nova konekcija
+      console.log(
+        'D. Kreiranje nove konekcije...'
+      );
+
+      this.db =
+        await this.sqlite.createConnection( 
+          'gymMetrics',
+          false,
+          'no-encryption',
+          1,
+          false
+        );
+    } //else zagrada
+
+
+    console.log('E. Konekcija kreirana/dohvaćena.');
+
+     //otvara se baza
+    await this.db.open();
+
+    console.log(
+      'F. Baza gymMetrics otvorena.'
+    );
+
+    //izvršavaju se naredbe za kreiranje tablica
+
+    await this.db.execute(`
+      CREATE TABLE IF NOT EXISTS Testna_tablica (
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        Poruka TEXT NOT NULL
+      );
+    `); 
+
+    //await this.db.execute('PRAGMA foreign_keys = ON'); //uključuje provjeru FK ograničenja
+    //console.log('F.1 FK provjera uključena');
+
+    //await this.createTables();
+
+    console.log('G. CREATE TABLE naredbe završene.');
+
+    // Dohvaćamo popis tablica iz SQLite baze
+    const tables = await this.db.getTableList();
+
+    console.log('H. Tablice u bazi:', tables);
+
+    console.log('I. SQLite inicijalizacija završena.');
+
+  } //async initializeDatabase zagrada
+  
+
+   /*         KREIRANJE TABLICA BAZE       */
+  /*
+  async createTables() {
+
+    //CREATE TABLE NAREDBE.
+
+  } //async createTables zagrada
+   */
+
+} //Class DatabaseService zagrada
+
+// Jedna instanca servisa za cijelu aplikaciju.
+const databaseService = new DatabaseService();
+
+// Omogućuje drugim datotekama da koriste isti databaseService objekt.
+export default databaseService;
