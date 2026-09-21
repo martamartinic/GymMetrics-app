@@ -2,7 +2,7 @@
 
 //priprema SQLite bazu da aplikacija može raditi s podacima
 //uvoz centralnog servisa za SQLite bazu //dohvat kreirane jedne instance databaseService  iz mape services
-// import databaseService from '../services/database.service';
+import databaseService from '../services/database.service';
 
 //pokretanje inicijalizacije SQLite baze prilikom pokretanja aplikacije
 export default async () => {

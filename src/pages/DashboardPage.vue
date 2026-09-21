@@ -100,7 +100,7 @@
           v-else
           class="empty-state"
         >
-          Nema neaktivnih klijenata.
+          Nema neaktivnih klijenata
         </div>
 
       </section>
@@ -167,7 +167,7 @@
           v-else
           class="empty-state"
         >
-          Nema aktivnih klijenata.
+          Nema aktivnih klijenata
         </div>
 
       </section>
