@@ -1,3 +1,5 @@
+//pokreće/kreira Piniju
+
 import { defineStore } from '#q-app'
 import { createPinia } from 'pinia'
 

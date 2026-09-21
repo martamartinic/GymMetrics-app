@@ -1,3 +1,5 @@
+//primjer konkretnog Pinia Storea
+
 import { defineStore, acceptHMRUpdate } from 'pinia'
 
 export const useCounterStore = defineStore('counter', {

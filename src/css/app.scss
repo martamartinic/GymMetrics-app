@@ -1,1 +1,34 @@
 // app global css
+
+body {
+
+    background: #0F1A2B; //deep navy
+    color: #BDC4D4;      //ivory
+    font-family: "Roboto", sans-serif;
+
+} //body zagrada
+
+.auth-card {
+    width: 420px;
+    max-width: 90vw;
+
+    background: rgba(255,255,255,0.04);
+
+    border-radius: 18px;
+
+    backdrop-filter: blur(10px); //glass efekt
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    padding: 32px;
+}
+
+.page-background {
+   // min-height: 100vh;
+   height: 100dvh;
+    min-height: 0 !important;
+    max-height: 100dvh;
+    overflow: hidden;
+
+    background: #0F1A2B;
+}

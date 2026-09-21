@@ -12,7 +12,8 @@ export default defineConfig((/* ctx */) => {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
-      'database' //govori quasaru da učita src/boot/database.js prilikom pokretanja app
+      'database', //govori quasaru da učita src/boot/database.js prilikom pokretanja app
+      'auth'     //govori quasaru da učita src/boot/auth.js prilikom pokretanja app
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
@@ -91,7 +92,9 @@ export default defineConfig((/* ctx */) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: [
+        'Notify',
+      ],
     },
 
     // animations: 'all', // --- includes all animations
