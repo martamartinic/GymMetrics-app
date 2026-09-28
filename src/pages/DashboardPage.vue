@@ -19,6 +19,7 @@
           dense
           label="Pretraži klijenta po imenu i/ili prezimenu"
           clearable
+          @clear="clearSearch"
         >
           <template #prepend>
             <q-icon name="search" />
@@ -180,158 +181,153 @@
 
 <script setup>
 
+// Uvoz computed funkcije za stvaranje izvedenih reaktivnih vrijednosti.
 import { computed, onMounted, ref } from 'vue'
+// Uvoz Vue Router funkcije za navigaciju između ekrana aplikacije.
 import { useRouter } from 'vue-router'
+// Dohvat trenutno aktivne router instance.
 const router = useRouter()
 
+// Uvoz Quasar Notify funkcije za prikaz poruka treneru.
 import { Notify } from 'quasar'
 
+// Uvoz Pinia store-a koji sadrži podatke trenutno prijavljenog trenera.
 import { useAuthStore } from '@/stores/auth.store'
+// Dohvat instance auth store-a.
 const authStore = useAuthStore();
 
+// Uvoz servisa koji sadrži operacije vezane uz klijente.
 import clientService from '@/services/client.service'
 
+// Reaktivna varijabla koja sadrži tekst koji trener upisuje u tražilicu.
 const searchText = ref('')
+// Reaktivna varijabla koja sadrži sve klijente trenutno prijavljenog trenera.
 const clients = ref([])
+// Reaktivna varijabla koja označava traje li trenutno učitavanje klijenata.
 const loading = ref(false)
 
+// Izvedena reaktivna vrijednost koja dohvaća ime trenutno prijavljenog trenera iz auth store-a.
 const trainerName = computed(() => {
+    // Vraćamo ime trenera iz Pinia store-a.
   return authStore.trainerName
-})
+}) //const trainerName zagrada
 
-/*
- * PRIVREMENI TESTNI PODACI
- *
- * Ovo će se kasnije zamijeniti podacima
- * iz database.service.js.
- */
-/*
-const clients = ref([
-  {
-    id: 1,
-    firstName: 'Ana',
-    lastName: 'Anić',
-    gender: 'Ž',
-    contact: '098-123-45678',
-    active: false,
-  },
-  {
-    id: 2,
-    firstName: 'Ivo',
-    lastName: 'Ivić',
-    gender: 'M',
-    contact: '098-123-45678',
-    active: false,
-  },
-  {
-    id: 3,
-    firstName: 'Pero',
-    lastName: 'Perić',
-    gender: 'M',
-    contact: '098-123-45678',
-    active: true,
-  },
-  {
-    id: 4,
-    firstName: 'Ivana',
-    lastName: 'Ivanić',
-    gender: 'Ž',
-    contact: '098-123-45678',
-    active: true,
-  },
-  {
-    id: 5,
-    firstName: 'Marko',
-    lastName: 'Marić',
-    gender: 'M',
-    contact: '098-123-45678',
-    active: true,
-  },
-  {
-    id: 6,
-    firstName: 'Petra',
-    lastName: 'Perić',
-    gender: 'Ž',
-    contact: '098-123-45678',
-    active: true,
-  },
-])
-  */
-
+// Izvedena reaktivna vrijednost koja normalizira tekst iz tražilice.
 const normalizedSearch = computed(() => {
+  //uzima se ono što je trener upisao u tražilicu
   return searchText.value
-    .trim()
-    .toLowerCase()
+    .trim()                //uklanjanje razmaka s početka i kraja unosa
+    .replace(/\s+/g, ' ')  //pretvara više uzastupnih razmaka unutar teksta u jedan razmak
+    .toLowerCase()         //pretvorba teksta u mala slova radi pretraživanja neovisnog o velikim/malim slovima.
 })
 
+//funkcija da se kod brisanja pretrage (klik na x u tražilici) ponovno prikažu svi klijenti
+function clearSearch() {
+  //postavlja se teskt tražilice na prazan string
+  searchText.value = ''
+
+} //clearSearch() zagrada
+
+//funkcija za provjeru odgovara li klijent unesenom tekstu u tražilici
 function matchesSearch(client) {
+  //ako je tražiica prazna, svaki klijent odgovara pretrazi -->prikazuju se svi klijenti prikazanog trenera iz baze
   if (!normalizedSearch.value) {
+    //vraća true jer nema aktivnog kriterija pretrage - kako bi se klijenti prikazali
     return true
   }
 
+  //spaja se ime i prezime u jedan tekst
   const fullName = `${client.firstName} ${client.lastName}`
-    .toLowerCase()
-  return fullName.includes(normalizedSearch.value)
-}
+    .trim()                 //uklanjanje razmaka
+    .replace(/\s+/g, ' ')   //pretvorba više razmaka u jedan razmak
+    .toLowerCase()          //pretvorba imena i prezimena u mala slova
+  
+    //razdvajanje onog što je trener unio u pojedine riječi
+    const searchWords = normalizedSearch.value.split(' ')
+    //provjera mora li se svaka unesena riječ pronaći u imenu ili prezimenu
+    return searchWords.every(word => {
+      //provjera nalazi li se trenutna riječ unutar punog imena ili prezimena
+      return fullName.includes(word)
+    }) //searchWords zagrada
 
+    //return fullName.includes(normalizedSearch.value)
+
+} //matchesSearch zagrada
+
+//izvedeni popis neaktivnih klijenata
 const filteredInactiveClients =  computed(() => {
+  //iz svih klijenata uzima se samo neaktivne klijente koje odgovaraju pretrazi
     return clients.value.filter(
       client =>!client.active && matchesSearch(client)
-    )
-  })
+    ) //return zagrada
+}) //filteredInactiveClients zagrada
 
+//izvedeni popis aktivnih klijenata
 const filteredActiveClients =  computed(() => {
+  //iz svih klijenata vraća klijente koji su aktivni koji odgovaraju pretrazi
     return clients.value.filter(
         client => client.active && matchesSearch(client)
-    )
-  })
+    ) //return zagrada
+}) //redActiveClients zagrada
 
-// DOHVAT KLIJENATA
+// FUNKCIJA ZA DOHVAT KLIJENATA
 async function loadClients() {
-
+// Provjera postoji li ID trenutno prijavljenog trenera.
   if (!authStore.trainerId) {
+    // Ako trener nije prijavljen, vraća se na login ekran.
     router.push('/login')
+    //prekida se daljnje izvršavanje funkcije dohvata klijenata
     return
-  }
+  } //if zagrada
 
+   // Uključivanje loading stanje prije početka dohvaćanja podataka.
   loading.value = true
 
+  //try blok za pokušaje dohvata klijenata
   try {
 
+    //dohvat samo klijenata trenutno prijavljenog trenera
     clients.value = await clientService.getClientsForTrainer(
           authStore.trainerId
-    )
+    ) //clients.value zagrada
 
   } catch (error) {
 
-    console.error(
-      'Greška pri dohvaćanju klijenata:',
-      error
-    )
+    //ispis u konzolu ukoliko se dogodi greški pri dohvatu klijenta
+    console.error('Greška pri dohvaćanju klijenata:', error )
 
+    //prikaz poruke treneru na ekranu ukoliko se dogodi greški pri dohvatu klijenta
     Notify.create({
       type: 'negative',
       message: 'Nije moguće dohvatiti klijente.',
-      position: 'top',
-      timeout: 2500
-    })
+      position: 'top',                              //položaj poruke na ekranu
+      timeout: 2500                                 //vrijeme prikaza poruke u milisekundama
+    }) //notify create zagrada
 
+    // Blok koji se izvršava bez obzira na uspjeh ili grešku.
   } finally {
+    //isključivanje loading stanja nakon završetka dohvaćanja
     loading.value = false
-  }
+  } //finaly zagrada
 } //async function zagrada
 
+//učitavanje klijenata pri otvaranju ekrana/kda se dashboard otvori
 onMounted(() => {
+  //pokretanje funkcije za dohvat klijenata
   loadClients()
 })
 
+//funkcija za otvaranje ekrana za dodavanje klijenta
 function openAddClient() {
+  //navigacija na ekran za dodavanje klijenta
   router.push('/dashboard/add-client')
-}
+} //openAddClient zagrada
 
+//funkcija za otvaranje ekrana detalja odabranog klijenta
 function openClientDetails(client) {
+  //navigacija na ekran detalja odabranog klijenta pomoću ID-ja klijenta
   router.push(`/dashboard/clients/${client.id}`)
-}
+} // openClientDetails zagrada
 
 </script>
 
@@ -341,11 +337,13 @@ function openClientDetails(client) {
   background: var(--q-dark-page);
 }
 
+/* SADRŽAJ DASHBOARD EKRANA */
 .dashboard-content {
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px 16px 32px;
+  width: 100%;                 /*zauzima cijelu širinu mobilnom ekrana */
+  max-width: none;
+  margin: 0;                   /* Uklanjanje automatskog centriranja desktop sadržaja. */
+  padding: 16px 12px 28px;     /* Unutarnji razmak sadržaja od rubova mobilnog ekrana. */
+ box-sizing: border-box;      /* Sprječavanje problema s box modelom kod širine i paddinga. */
 }
 
 /* DOBRODOŠLICA */
@@ -356,7 +354,7 @@ function openClientDetails(client) {
 
 .welcome-title {
   color: #BDC4D4; /* ivory */
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 600;
 }
 
@@ -453,16 +451,16 @@ function openClientDetails(client) {
 
 /* KARTICA KLIJENTA */
 
-.client-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.client-card { 
+  display: flex;                                   /* Kartica koristi horizontalni raspored. */
+  align-items: center;                             /* Vertikalno centriranje sadržaja kartice. */
+  gap: 10px;                                       /* Razmak između elemenata kartice. */
 
-  border: 1px solid rgba(189, 196, 212, 0.25);
-  border-radius: 12px;
+  border: 1px solid rgba(189, 196, 212, 0.25);   /* Obrub kartice. */
+  border-radius: 12px;                             /* Zaobljenje rubova kartice. */
 
-  padding: 14px;
-  min-height: 90px;
+  padding: 12px;                                   /* Unutarnji razmak kartice. */
+  min-height: 90px;                                /* Minimalna visina kartice. */
 }
 
 /* IKONA */
@@ -484,22 +482,21 @@ function openClientDetails(client) {
 
 .client-name {
   color: #BDC4D4;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 4px;   /* Razmak ispod imena. */
 }
 
 .client-detail {
-  color: rgba(189, 196, 212, 0.8);
-  font-size: 14px;
-  margin-top: 2px;
+  color: rgba(189, 196, 212, 0.8);   /* Boja dodatnih podataka klijenta. */
+  font-size: 13px;
+  margin-top: 2px;                     /* Mali razmak iznad podatka. */
 }
 
 /* GUMB */
 
 .client-actions {
-  flex: 0 0 auto;
-  
+  flex: 0 0 auto;  
 }
 
 /* PRAZNO */
@@ -510,33 +507,9 @@ function openClientDetails(client) {
   color: rgba(189, 196, 212, 0.65);
 }
 
-/* MOBITEL */
-
-@media (max-width: 500px) {
-  .dashboard-content {
-    padding: 16px 12px 28px;
+ .client-actions .q-btn {
+    padding: 4px 8px;       /* Vertikalni unutarnji razmak gumba. */
+    font-size: 12px;        /* Veličina teksta gumba. */
   }
 
-  .welcome-title {
-    font-size: 21px;
-  }
-
-  .client-card {
-    padding: 12px;
-    gap: 10px;
-  }
-
-  .client-name {
-    font-size: 15px;
-  }
-
-  .client-detail {
-    font-size: 13px;
-  }
-
-  .client-actions .q-btn {
-    padding: 4px 8px;
-    font-size: 12px;
-  }
-}
 </style>

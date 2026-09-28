@@ -64,7 +64,7 @@ function openSignup() {
 function openLogin() {
     router.push('/login')
 }  
-//
+
 </script>
 
 <style scoped>

@@ -21,7 +21,7 @@ const routes = [
   
   {
       path: '/dashboard', component: () => import('@/layouts/MainLayout.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true }, //radi zaštite rute
       children: [
         //ruta za dashboard
         { 
@@ -30,6 +30,18 @@ const routes = [
         },
     
          // OVE RUTE ĆE SE POPUNITI KADA SE NAPRAVE EKRANI
+
+         {
+          path: 'add-client',
+          component: () => import('@/pages/AddClientPage.vue'),
+          //meta: {requiresAuth: true}  //radi zaštite rute
+        }, //zagrada path: 'add-client'
+
+       // {
+      //   path: 'clients/:id',
+      //   component: () => import('@/pages/ClientDetailsPage.vue'),
+      //   //meta: {requiresAuth: true} //radi zaštite rute
+      // },
 
       // {
       //   path: 'training', component: () => import('@/pages/TrainingPage.vue'),
@@ -45,19 +57,7 @@ const routes = [
       //   component: () => import('@/pages/ProfilePage.vue'),
       // },
 
-      // {
-      //   path: 'add-client',
-      //   component: () => import('@/pages/AddClientPage.vue'),
-     //    //meta: {requiresAuth: true}  //radi zaštite rute
-      // },
-
-      // {
-      //   path: 'clients/:id',
-      //   component: () => import('@/pages/ClientDetailsPage.vue'),
-      //   //meta: {requiresAuth: true} //radi zaštite rute
-      // },
-
-      ], //Children zagrada
+     ], //Children zagrada
   },
 
     // Always leave this as last one,
