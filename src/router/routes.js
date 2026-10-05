@@ -37,14 +37,19 @@ const routes = [
           //meta: {requiresAuth: true}  //radi zaštite rute
         }, //zagrada path: 'add-client'
 
-       // {
-      //   path: 'clients/:id',
-      //   component: () => import('@/pages/ClientDetailsPage.vue'),
+        {
+         path: 'clients/:id',
+         component: () => import('@/pages/ClientDetailsPage.vue'),
       //   //meta: {requiresAuth: true} //radi zaštite rute
-      // },
+       },
+
+       {
+        path: 'clients/:id/training/new',
+        component: () => import('@/pages/AddTrainingPage.vue')
+       },
 
       // {
-      //   path: 'training', component: () => import('@/pages/TrainingPage.vue'),
+      //   path: 'trainingTypes', component: () => import('@/pages/TrainingTypesPage.vue'),
       // },
 
       // {

@@ -143,28 +143,28 @@
                         dropdown-icon="expand_more"
                     >
 
-                    <!-- LISTA CILJEVA (STVARNI PODACI) IZ BAZE (SEED PODACI) -->
-                    <q-list class="goal-dropdown-menu">
-                        <!-- Kreiranje jedne stavke za svaki cilj iz baze: -->
-                        <q-item  
-                            v-for="goal in goals"
-                            :key="goal.id"
-                            clickable
-                            v-close-popup 
-                            @click="selectGoal(goal)"
-                        >          
-                         <!-- Sekcija unutar stavke dropdowna. -->               
-                            <q-item-section>
-                            <q-item-label> {{goal.name}} </q-item-label>
-                            </q-item-section>
-                        </q-item>
+                        <!-- LISTA CILJEVA (STVARNI PODACI) IZ BAZE (SEED PODACI) -->
+                        <q-list class="goal-dropdown-menu">
+                            <!-- Kreiranje jedne stavke za svaki cilj iz baze: -->
+                            <q-item  
+                                v-for="goal in goals"
+                                :key="goal.id"
+                                clickable
+                                v-close-popup 
+                                @click="selectGoal(goal)"
+                            >          
+                             <!-- Sekcija unutar stavke dropdowna. -->               
+                                <q-item-section>
+                                <q-item-label> {{goal.name}} </q-item-label>
+                                </q-item-section>
+                            </q-item>
 
-                    </q-list>
+                        </q-list>
 
-                </q-btn-dropdown>
-        
-                <!-- GUMB DODAJ NOVI CILJ ZA OTVARANJE POPUP PROZORA -->
-                <q-btn
+                    </q-btn-dropdown>
+            
+                    <!-- GUMB DODAJ NOVI CILJ ZA OTVARANJE POPUP PROZORA -->
+                    <q-btn
                         unelevated
                         rounded
                         color="secondary"
@@ -595,10 +595,7 @@ onMounted(() => {
 /* GLAVNI KONTAJNER */
 .add-client-content {
   width: 100%;
- /* max-width: 900px; */
   height: 100%;
-  /* margin: 0 auto;
-  padding: 20px 16px 32px; */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -633,20 +630,20 @@ onMounted(() => {
 
 /* SREDINA KOJA SE SCROLL-A */
 .page-scroll-area {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 12px 16px 20px;
-    box-sizing: border-box;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 16px 20px;
+  box-sizing: border-box;
 }
 
 /* KONTEJNER POLJA ZA UNOS PODATAKA O KLIJENTU */
 .inputs-container{
-    border: 1px solid rgba(189, 196, 212, 0.45);
-    border-radius: 16px;
-    padding: 14px;
-    box-sizing: border-box;
-    margin-bottom:20px;
+  border: 1px solid rgba(189, 196, 212, 0.45);
+  border-radius: 16px;
+  padding: 14px;
+  box-sizing: border-box;
+  margin-bottom:20px;
 }
 
 /* KONTJENER CILJEVA */
@@ -703,19 +700,16 @@ onMounted(() => {
 
 /* KONTEJNER GUMBA SPREMI */
 .buttons-container{
-    flex-shrink: 0;
-    padding: 8px 12px 12px;
-    box-sizing: border-box;
-
-   /* display:flex;
-    flex-direction:column; */
+  flex-shrink: 0;
+  padding: 8px 12px 12px;
+  box-sizing: border-box;
 }
 
 /* GUMB SPREMI */
 .save-button{
-    width: 100%;
-    height:52px;
-    font-size:18px;
+  width: 100%;
+  height:52px;
+  font-size:18px;
 }
 
 /* POZADINA POPUPA ZA NOVI CILJ */

@@ -208,9 +208,71 @@ class ClientService {
       throw error
     }//catch zagrada
 
-  } //zagrada createClientWithGoal 
+  } //zagrada async createClientWithGoal funkcija
 
-} //ClientService zagrada
+  //METODA ZA DOHVAT CILJA KLIJENTA (EKRAN DETALJI KLIJENTA)
+  //dohvat cilja koji je dodijeljen odabranom klijentu
+  async getClientGoal(clientId, trainerId) {
+    //dohvat trenutno otvorene sqlite baze
+    const db = this.getDatabase()
+    //provjera je li baza otvorena
+    if(!db) {
+      //prikaz greške ako baza nije otvorena
+      throw new Error('SQLite baza nije otvorena')
+    } //if zagrada
+
+    //dohvat cilja odabranog klijenta //klijenta još povezujemo s trenerom kako se ne bi mogao dohvatiti cilj tuđeg klijenta
+    const rezultat = await db.query( 
+      ` SELECT Grupa_ciljeva.ID_ciljeva, Grupa_ciljeva.Naziv_cilja, Grupa_ciljeva.Opis_cilja
+      FROM Grupa_ciljeva INNER JOIN Ciljevi_klijenta
+      ON Ciljevi_klijenta.ID_ciljeva = Grupa_ciljeva.ID_ciljeva
+      INNER JOIN Klijenti ON Klijenti.ID_klijenta = Ciljevi_klijenta.ID_klijenta
+      WHERE
+      Klijenti.ID_klijenta = ? AND Klijenti.ID_trenera = ?
+      ORDER BY Grupa_ciljeva.ID_ciljeva ASC LIMIT 1; `,
+      [clientId, trainerId]
+    ) //const rezultat zagrada
+
+    //dohvat prvog pronađenog cilja
+    const goal = (rezultat.values || [])[0]
+    //ako cilj ne postoji, vraća se null
+    if(!goal) {
+      return null
+    } //if zagrada
+
+    //pretvorba sql podataka u javascript objekt
+    return {
+      id: goal.ID_ciljeva,
+      name: goal.Naziv_cilja,
+      description: goal.Opis_cilja
+    } //return zagrada
+    
+  } //async getClientGoal zagrada
+
+  //METODA ZA BRISANJE KLIJENTA (EKRAN DETALJI KLIJENTA)
+  //Brisanje preko ID klijenta
+  async deleteClient(clientId, trainerId) {
+    //dohvat trenutno otvorene baze
+    const db = this.getDatabase()
+    //provjera je li baza otvorena
+    if(!db) {
+      //javlja grešku ako baza nije otvorena
+      throw new Error('SQLite baza nije otvorena')
+    } //if zagrada
+
+    //brisanje klijenta samo ako pripada treneru
+    const rezultat = await db.run(
+      ` DELETE FROM Klijenti
+        WHERE ID_klijenta = ? AND ID_trenera = ?; `,
+        [clientId, trainerId]
+    ) //const rezultat zagrada
+
+    //vraćamo broj promijenjenih redaka
+    return rezultat.changes?.changes || 0
+
+  } //async deleteClient
+
+} //class ClientService zagrada
 
 //nova instanca clientService klase
 const clientService = new ClientService()

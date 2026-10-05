@@ -1,3 +1,5 @@
+//centralno mjesto kroz koje će aplikacija komunicirati za sve vezano uz ciljeve (klijenta)
+
 // Uvoz databaseService radi mogućnosti pristupa otvorenoj SQLite bazi
 import databaseService from './database.service'
 
