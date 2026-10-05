@@ -7,14 +7,9 @@
     <!-- EKRAN KOJI DIJELI APP NA HEADER, SCROLL-ABILNU SREDINU I FOOTER -->
     <div class="add-client-content">
 
-        <!-- FIXAN HEADER -->
         <div class="page-header">
-
             <!-- NASLOV NA VRHU EKRANA -->
-            <div class="page-title">
-            DODAVANJE KLIJENTA
-            </div>
-
+            <div class="page-title"> DODAVANJE KLIJENTA </div>
             <q-btn
             flat 
             dense
@@ -23,7 +18,6 @@
             class="close-button"
             @click="closePage"
             />
-
         </div>
 
         <!-- SREDINA EKRANA KOJA SE SCROLL-A -->
@@ -41,6 +35,7 @@
                         color="primary"
                         dark
                     />
+                    <!--razmak između polja -->
                     <q-space class="q-my-sm"/>
                     
                     <!-- Prezime -->
@@ -176,11 +171,10 @@
             </div>
         </div>
 
-    </div>
+     </div>
 
         <!-- GUMB SPREMI -->
         <div class="buttons-container">
-
             <q-btn
                 unelevated
                 rounded
@@ -190,7 +184,6 @@
                 :loading="loading"
                 @click="saveClient" 
             />
-
         </div>
         
     </div>
@@ -354,8 +347,9 @@ async function saveGoal() {
     if(!newGoalName.value.trim() ) {
         //prikaz upozorenja na ekranu korisniku/treneru
         Notify.create({
-            message:'Naziv cilja je obvezan.',
-            type: 'warning'
+            message:'Naziv cilja je obvezan',
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
         return //prekid funckije jer je naziv cilja obavezan
     }//if zagrada
@@ -391,18 +385,19 @@ async function saveGoal() {
 
         //prikaz poruke korisniku o uspješnom dodavanju cilj(eva)
         Notify.create({
-            message: 'Novi cilj je uspješno dodan.',
-            type: 'positive'
+            message: 'Novi cilj je uspješno dodan',
+            type: 'positive',
+            position:'top'
         }) //notify zagrada
 
     }//try zagrada
     //hvatanje pogrešaka
     catch(error){
         //ispis u konzoli
-        console.error('Greška pri dodavanju cilja.', error);
+        console.error('Greška pri dodavanju cilja: ', error);
         //prikaz alerta/poruke na ekranu korisnika/trenera
         Notify.create({
-            message: 'Greška kod dodavanja cilja.',
+            message: 'Greška kod dodavanja cilja',
             type: 'negative'
         }) //notify zagrada
 
@@ -433,7 +428,8 @@ async function saveClient() {
     if(!ime.value.trim() ) {
         Notify.create({
             message: 'Ime klijenta je obavezno',
-            type: 'warning'
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
         //obavezan return za prekid funkcije spremanja jer je ime obavezno
         return
@@ -441,7 +437,8 @@ async function saveClient() {
     if(!prezime.value.trim()) {
         Notify.create({
             message: 'Prezime klijenta je obavezno',
-            type: 'warning'
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
         //obavezan return za prekid funkcije spremanja jer je prezime obavezno
         return
@@ -449,7 +446,8 @@ async function saveClient() {
     if(!spol.value.trim()) {
         Notify.create({
             message: 'Spol klijenta je obavezan',
-            type: 'warning'
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
          //obavezan return za prekid funkcije spremanja jer je spol obavezan
         return
@@ -458,15 +456,17 @@ async function saveClient() {
     if(!kontakt.value.trim()) {
         Notify.create({
             message: 'Kontakt klijenta je obavezan',
-            type: 'warning'
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
          //obavezan return za prekid funkcije spremanja jer je kontakt obavezan
         return
     } //if zagrada
-    if(!visina.value) {
+    if(!visina.value.trim()) {
         Notify.create({
             message: 'Visina klijenta u cm je obavezna',
-            type: 'warning'
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
          //obavezan return za prekid funkcije spremanja jer je visina obavezna
         return
@@ -477,15 +477,17 @@ async function saveClient() {
     if(!Number.isFinite(visinaBroj) || visinaBroj <= 0) {
         Notify.create({
             message: 'Visina mora biti broj veći od 0.',
-            type: 'warning'
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
         //obavezan return za prekid funkcije spremanja jer je visina obavezna (kao broj veći od 0)
         return 
     }//if zagrada
-    if(!tezina.value) {
+    if(!tezina.value.trim()) {
         Notify.create({
             message: 'Početna težina klijenta u kg je obavezna',
-            type: 'warning'
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
         //obavezan return za prekid funkcije spremanja jer je težina obavezna
         return
@@ -496,7 +498,8 @@ async function saveClient() {
     if(!Number.isFinite(tezinaBroj) || tezinaBroj <= 0) {
         Notify.create({
             message: 'Početna težina mora biti broj veći od 0.',
-            type: 'warning'
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
         //obavezan return za prekid funkcije spremanja jer je težina obavezna (kao broj veći od 0)
         return
@@ -504,7 +507,8 @@ async function saveClient() {
     if(!fitnessIskustvo.value.trim()) {
         Notify.create({
             message: 'Fitness iskustvo klijenta je obavezno',
-            type: 'warning'
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
         //obavezan return za prekid funkcije spremanja jer je fitness iskustvo obavezno
         return
@@ -514,8 +518,9 @@ async function saveClient() {
     if(!selectedGoal.value){
         //prikazuje se upozorenje na ekranu korisnika/trenera
         Notify.create({
-            message: 'Odaberite cilj klijenta.',
-            type: 'warning'
+            message: 'Odaberite cilj klijenta',
+            type: 'warning',
+            position:'top'
         }) //notify zagrada
         //prekid spremanje jer svi obavezni podaci nisu spremni
         return
@@ -548,7 +553,7 @@ async function saveClient() {
 
         //poruka uspješnog spremanja
         Notify.create({
-            message: 'Klijent je uspješno spremljen.',
+            message: 'Klijent je uspješno spremljen',
             type: 'positive',
             position: 'top'
         }) //notify zagrada
@@ -566,7 +571,8 @@ async function saveClient() {
 
         Notify.create({
             message: 'Greška pri spremanju klijenta ',
-            type: 'negative'
+            type: 'negative',
+            position:'top'
         }) //notify zagrada
     } //catch zagrada
     finally{
@@ -704,7 +710,6 @@ onMounted(() => {
   padding: 8px 12px 12px;
   box-sizing: border-box;
 }
-
 /* GUMB SPREMI */
 .save-button{
   width: 100%;

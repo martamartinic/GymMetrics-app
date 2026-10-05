@@ -40,16 +40,24 @@ const routes = [
         {
          path: 'clients/:id',
          component: () => import('@/pages/ClientDetailsPage.vue'),
-      //   //meta: {requiresAuth: true} //radi zaštite rute
-       },
+         //meta: {requiresAuth: true} //radi zaštite rute
+        },
 
-       {
-        path: 'clients/:id/training/new',
-        component: () => import('@/pages/AddTrainingPage.vue')
-       },
+        //ekran za uređivanje osobnih podataka klijenta
+        {
+         path: 'clients/:id/edit',
+         component: () => import('@/pages/EditClientPage.vue')
+        },
+
+        //ekran za dodavanje novog treninga
+        {
+         path: 'clients/:id/training/new',
+         component: () => import('@/pages/AddTrainingPage.vue')
+        },
 
       // {
-      //   path: 'trainingTypes', component: () => import('@/pages/TrainingTypesPage.vue'),
+      //   path: 'trainingTypes', 
+      //   component: () => import('@/pages/TrainingTypesPage.vue'),
       // },
 
       // {

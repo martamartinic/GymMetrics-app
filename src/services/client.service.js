@@ -272,6 +272,76 @@ class ClientService {
 
   } //async deleteClient
 
+  //FUNKCIJA ZA UREĐIVANJE PODATAKA O KLIJENTU (PR. EKRAN EDITCLIENTPAGE.VUE)
+async updateClient({clientId,trainerId,firstName,lastName,gender,contact,height,startingWeight,experience,note}) {
+  // Dohvaćaz otvorene SQLite baze
+  const db = this.getDatabase()
+  // UPDATE mijenja postojeći zapis klijenta osim ID-a klijenta provjera i ID trenera -- na taj način trener može mijenjati samo svog klijenta
+  const rezultat = await db.run(
+    `UPDATE Klijenti SET Ime_klijenta = ?, Prezime_klijenta = ?, Spol = ?, Kontakt = ?,
+      Visina_cm = ?, Pocetna_tezina_kg = ?, Iskustvo = ?, Napomena = ?
+    WHERE ID_klijenta = ? AND ID_trenera = ?;
+    `,[firstName,lastName,gender,contact,height,startingWeight,experience,note,clientId,trainerId ]
+  ) //const rezultat zagrada
+
+  // Provjerava je li UPDATE stvarno promijenio jedan zapis
+  if (!rezultat.changes || rezultat.changes.changes === 0) {
+    // Ako nije promijenjen nijedan zapis, vraća grešku
+    throw new Error('Klijent nije pronađen ili nije moguće ažurirati njegove podatke.')
+  } //if zagrada
+
+  // Vraćam broj promijenjenih zapisa
+  return rezultat.changes.changes  
+
+} //updateClient zagrada
+
+//FUNKCIJA ZA AŽURIRANJE CILJA KLIJENTA
+async updateClientGoal(clientId, trainerId, goalId) {
+  // Dohvat trenutno otvorene SQLite baze
+  const db = this.getDatabase()
+  // Provjerava postoji li otvorena baza
+  if (!db) {
+    throw new Error('SQLite baza nije otvorena.')
+  } //if zagrada
+
+  // Provjera postoje li svi potrebni podaci
+  if (!clientId || !trainerId || !goalId) {
+    throw new Error('Podaci za ažuriranje cilja nisu potpuni')
+  } //if zagrada
+
+  // Prvo provjerapostoji li već povezan cilj za klijenta, dodatna provjera klijenta preko ID trenera kako trener ne bi mogao mijenjati cilj tuđeg klijenta.
+  const postojećiCilj = await db.query(
+    `SELECT Ciljevi_klijenta.ID_klijenta
+    FROM Ciljevi_klijenta
+    INNER JOIN Klijenti
+      ON Klijenti.ID_klijenta = Ciljevi_klijenta.ID_klijenta
+    WHERE
+      Ciljevi_klijenta.ID_klijenta = ? AND Klijenti.ID_trenera = ?;
+    `, [clientId, trainerId]
+  ) //postojećiCilj zagrada
+
+  // Provjerava postoji li već redak u tablici Ciljevi_klijenta
+  if ((postojećiCilj.values || []).length > 0) {
+    // Ako postoji, samo se mijenja ID cilja
+    const rezultat = await db.run(
+      ` UPDATE Ciljevi_klijenta SET ID_ciljeva = ? WHERE ID_klijenta = ?; `, [goalId, clientId]
+    ) //rezultat zagrada
+
+    // Vraća broj promijenjenih redaka
+    return rezultat.changes?.changes || 0
+  } //if zagrada
+  else {
+    // Ako klijent još nema cilj, kreira se nova veza između klijenta i cilja
+    const rezultat = await db.run(
+      `INSERT INTO Ciljevi_klijenta (ID_klijenta, ID_ciljeva) VALUES (?, ?); `, [clientId, goalId]
+    ) //rezultat zagrada
+
+    // Vraća broj promijenjenih/dodanih redaka
+    return rezultat.changes?.changes || 0
+  }//else zagrada
+
+} //updateClientGoal zagrada
+
 } //class ClientService zagrada
 
 //nova instanca clientService klase

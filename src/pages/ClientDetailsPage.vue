@@ -817,17 +817,14 @@ async function deleteTraining(training) {
 } //deleteTraining zagrada
 
 //UREĐIVANJE KLIJENTA
-//PRIVREMENA FUNKCIJA ZA GUMB UREĐIVANJA
 function editClient() {
-    //trenutno samo obavijest korisnicima,, kasnije ide stvarni edit ekran
-    Notify.create({
-        message:'Uređivanje dodat će se naknadno',
-        type:'info',
-        position:'top'
-    }) //notify zagrada
-} //function editClient zagrada
-
-//BRISANJE KLIJENTA:
+    //provjera postoji li učitani klijent, ako ne prekid funkcije
+    if(!client.value) {
+      return
+    }//if zagrada
+    //otvaranje ekrana za uređivanje podataka -->ID klijenta šalje se kroz URL
+    router.push(`/dashboard/clients/${client.value.id}/edit`)
+  } //function editClient zagrada
 
 //FUNKCIJA KOJA BRIŠE KLIJENTA IZ BAZE
 async function deleteClient() {
