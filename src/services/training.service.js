@@ -2,6 +2,9 @@
 
 // Uvoz servisa koji daje pristup otvorenoj SQLite bazi
 import databaseService from './database.service'
+//uvoz servisa za klijente kako bi se status klijenta ((ne)aktivan) ažurirao nakon spremanja i brisanja treninga
+import clientService from './client.service'
+import { Notify } from 'quasar'
 
 // Servis zadužen za podatke vezane uz treninge klijenta
 class TrainingService {
@@ -168,6 +171,16 @@ class TrainingService {
       throw new Error('ID treninga nije valjan')
     } //if zagrada
 
+    //prije brisanja dohvat klijenta kojemu trening pripada kako bi se mogao ažurirati status jer se zna kojem klijentu pripada trening
+    const rezultatKlijenta = await db.query(`
+      SELECT ID_klijenta
+      FROM Trening_klijenta
+      WHERE ID_treninga_klijenta = ?;
+    `, [numericTrainingId]
+    ) //rezultatiKlijenta zagrada
+    const trening = (rezultatKlijenta.values || [])[0] //pronađen trening
+    if(!trening){ return 0} //ako ne postoji trening nema se što brisati
+
     //brisanje treninga po njegovom ID-u //u bazi zbog delete cascade vježbe treninga se automatski brišu
     const rezultat = await db.run(
         ` DELETE FROM Trening_klijenta WHERE ID_treninga_klijenta = ? `,
@@ -176,87 +189,73 @@ class TrainingService {
     )//const rezultat zagrada
 
     //vraća broj izbrisanih redaka
-    return rezultat?.changes?.changes || 0
+   // return rezultat?.changes?.changes || 0
+
+   const deletedRows = rezultat?.changes?.changes || 0 // Broj obrisanih redaka
+
+    if (deletedRows > 0) {
+      // Nakon brisanja ponovno izračunavamo status klijenta.
+      await clientService.updateClientActivityStatus(null, trening.ID_klijenta)
+    } // if zagrada
+
+    return deletedRows
 
   } // async deleteTraining zagrada
 
   // METODA ZA SPREMANJE NOVOG TRENINGA KLIJENTA U BAZU
 // ZAJEDNO SA ODABRANIM VJEŽBAMA.
-async createTraining({
-  clientId,
-  trainingTypeId,
-  date,
-  rating,
-  note,
-  exerciseIds
-}) {
+async createTraining({clientId, trainingTypeId, date,  rating,  note,  exerciseIds }) {
 
-  // Dohvaćamo trenutno otvorenu SQLite bazu.
+  // Dohvaćat trenutno otvorene SQLite baze
   const db = this.getDatabase()
 
-  // Provjeravamo postoji li otvorena baza.
+  // Provjerava postoji li otvorena baza
   if (!db) {
     throw new Error('SQLite baza nije otvorena')
-  }
+  } //if zagrada
 
-  // Pretvaramo ID klijenta u broj.
+  // Pretvara ID klijenta u broj
   const numericClientId = Number(clientId)
-
-  // Pretvaramo ID vrste treninga u broj.
+  // Pretvara ID vrste treninga u broj
   const numericTrainingTypeId = Number(trainingTypeId)
-
-  // Pretvaramo ocjenu u broj.
+  // Pretvara ocjenu u broj
   const numericRating = Number(rating)
 
-  // Provjera ID-a klijenta.
+  // Provjera ID-a klijenta
   if (!Number.isInteger(numericClientId) || numericClientId <= 0) {
     throw new Error('ID klijenta nije valjan')
-  }
-
-  // Provjera ID-a vrste treninga.
+  } //if zagrada
+  // Provjera ID-a vrste treninga
   if (
     !Number.isInteger(numericTrainingTypeId) ||
     numericTrainingTypeId <= 0
   ) {
     throw new Error('ID vrste treninga nije valjan')
-  }
-
-  // Provjera datuma.
+  } //if zagrada
+  // Provjera datuma
   if (!date || !String(date).trim()) {
     throw new Error('Datum treninga je obavezan')
-  }
-
-  // Provjera ocjene.
+  } //if zagrada
+  // Provjera ocjene
   if (
     !Number.isFinite(numericRating) ||
-    numericRating < 1 ||
-    numericRating > 5
-  ) {
-    throw new Error('Ocjena mora biti između 1.0 i 5.0')
-  }
+    numericRating < 1 || numericRating > 5  )
+    {
+      throw new Error('Ocjena mora biti između 1.0 i 5.0')
+    } //if zagrada
 
-  // Ako nema vježbi, koristimo prazan niz.
-  const exercisesToSave = Array.isArray(exerciseIds)
-    ? exerciseIds
-    : []
+  // Ako nema vježbi, koristi se prazan niz
+  const exercisesToSave = Array.isArray(exerciseIds) ? exerciseIds : []
 
-    // Pokrećemo jednu transakciju.
-    // Svi INSERT-i moraju uspjeti ili se sve poništava.
+    // Pokreće se jedna transakcija --> ili svi INSERT-i uspješni ili se sve poništava
     await db.beginTransaction()
 
     //try sadrži sve operacije koje moraju uspjeti unutar iste transakcije
     try{
-    // Spremamo osnovne podatke treninga.
+    // Sprema osnovne podatke treninga
     const rezultatTreninga = await db.run(
-      `
-        INSERT INTO Trening_klijenta
-        (
-          ID_klijenta,
-          ID_vrsta_treninga,
-          Datum_treninga,
-          Ocjena_treninga,
-          Biljeska_treninga
-        )
+      ` INSERT INTO Trening_klijenta
+        (ID_klijenta, ID_vrsta_treninga,  Datum_treninga, Ocjena_treninga, Biljeska_treninga )
         VALUES (?, ?, ?, ?, ?)
       `,
       [
@@ -268,89 +267,72 @@ async createTraining({
           ? String(note).trim()
           : null
       ], false
-    )
+    ) //const rezultatTreninga zagrada
 
-    // Ispis rezultata u konzolu tijekom testiranja.
-    console.log(
-      'Rezultat INSERT-a treninga:',
-      rezultatTreninga
-    )
+    console.log('Rezultat INSERT-a treninga:', rezultatTreninga )
 
-    // Dohvaćamo ID upravo spremljenog treninga.
-    const trainingId =
-      rezultatTreninga?.changes?.lastId
+    // Dohvaćat ID upravo spremljenog treninga
+    const trainingId = rezultatTreninga?.changes?.lastId
 
-    // Ako SQLite nije vratio ID, prekidamo transakciju.
+    // Ako SQLite nije vratio ID, prekida se transakcija
     if (!trainingId) {
-      throw new Error(
-        'SQLite nije vratio ID novog treninga'
-      )
-    }
+      throw new Error('SQLite nije vratio ID novog treninga' )
+    } //if zagrada
 
-    // Prolazimo kroz sve označene vježbe //svaki označeni checkbox daje jedan ID vježbe
+    // Prolaz kroz sve označene vježbe //svaki označeni checkbox daje jedan ID vježbe
     for (const exerciseId of exercisesToSave) {
-
-      // Pretvaramo ID vježbe u broj.
+      // Pretvara ID vježbe u broj
       const numericExerciseId = Number(exerciseId)
 
-      // Preskačemo nevaljane ID-eve.
-      if (
-        !Number.isInteger(numericExerciseId) ||
-        numericExerciseId <= 0
-      ) {
-        throw new Error(
-          `ID vježbe nije valjan: ${exerciseId}`
-        )
-      }
+      // Preskače nevaljane ID-eve
+      if (!Number.isInteger(numericExerciseId) || numericExerciseId <= 0 ) {
+        throw new Error( `ID vježbe nije valjan: ${exerciseId}` )
+      } //if zagrada
 
-      // Spremamo vezu treninga i vježbe //ID treninga i ID vježbe spremaju se u agregiranu tablicu
+      // Sprema vezu treninga i vježbe //ID treninga i ID vježbe spremaju se u agregiranu tablicu
       await db.run(
-        `
-          INSERT INTO Vjezbe_treninga_klijenta
-          (
-            ID_treninga_klijenta,
-            ID_vjezbe
-          )
+        ` INSERT INTO Vjezbe_treninga_klijenta
+          ( ID_treninga_klijenta, ID_vjezbe )
           VALUES (?, ?)
         `,
-        [
-          trainingId,
-          numericExerciseId
-        ], false
-      )
-    }
+        [ trainingId, numericExerciseId], 
+        false
+      ) //await zagrada
+    } // for zagrada
 
-    // Ako su svi INSERT-i uspjeli,
-    // potvrđujemo transakciju.
+    // Ako su svi INSERT-i uspjeli, potvrđuje se transakcija
     await db.commitTransaction()
 
-    // Vraćamo ID novog treninga.
+    try{
+      //nakon spremanja treninga ponovno se izračunava status klijenta ((ne)aktivan)
+      await clientService.updateClientActivityStatus(null, numericClientId)
+    } //try zagrada
+    catch(error){
+      console.log('Greška pri ažuriranju statusa klijenta nakon spremanja treninga: ', error)
+      Notify.create({
+        message: 'Greška pri ažuriranju statusa klijenta nakon spremanja treninga',
+        type: 'negative',
+        position: 'top'
+      }) //notify zagrada
+      throw error
+    } //catch zagrada
+
+    // Vraća ID novog treninga
     return trainingId
 
   } catch (error) {
+    console.error('Stvarna greška u createTraining():', error )
 
-    // Ispisujemo stvarnu grešku u konzolu.
-    console.error(
-      'Stvarna greška u createTraining():',
-      error
-    )
-
-    // Pokušavamo poništiti transakciju.
+    // Pokušavaj poništenja transakcije
     try {
       await db.rollbackTransaction()
     } catch (rollbackError) {
+      console.error( 'Greška pri rollbacku:', rollbackError )
+    } //catch zagrada
 
-      // Ako rollback također ne uspije,
-      // ispisujemo njegovu grešku.
-      console.error(
-        'Greška pri rollbacku:',
-        rollbackError
-      )
-    }
-
-    // Šaljemo originalnu grešku natrag u AddTrainingPage.
+    // Šalje originalnu grešku natrag u AddTrainingPage.
     throw error
-  }
+  } //catch zagrada
 }//CRETETRAINING ZAGRADA 
 
 } //TrainingService zagrada

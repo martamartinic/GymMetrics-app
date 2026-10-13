@@ -963,7 +963,7 @@ async function deleteClient() {
 function confirmDeleteClient() {
     //native confirm dijalog koristimo privremeno
     const confirmed = window.confirm(
-        'Brisanjem klijenta TRAJNO se brišu SVI podaci vezani uz njega što uključuje treninge, mjerenja, testove, prehranu, zd stanje, k sliku i termine. \n \n Jeste li sigurni da želite nastaviti?'
+        'Brisanjem klijenta TRAJNO se brišu  i SVI podaci treninga, mjerenja, testova, prehrane, zd stanja, k slike i termina. \n \n Jeste li sigurni da želite nastaviti?'
     ) //Const confirmed
     //ako korisnik nije potvrdio, prekida se funkcija
     if(!confirmed) {

@@ -9,6 +9,43 @@ class ClientService {
     return databaseService.db //vraća referencu na otvorenu bazu iz database.service
   }
 
+  //FUNKCIJA ZA AŽURIRANJE STATUS KLIJENTA ((NE)AKTIVAN) PREMA TRENINGU U ZADNJIH 30 DANA
+  async updateClientActivityStatus(trainerId = null, clientId = null) {
+     const db = this.getDatabase() // Dohvat otvorene baze
+
+    if (!db) {
+      throw new Error('SQLite baza nije otvorena.')
+    } // if zagrada
+
+    // Status je aktivan ako postoji trening danas ili u prethodnih 29 kalendarskih dana.
+    let sql = ` UPDATE Klijenti  SET Aktivan_flag = CASE
+        WHEN EXISTS (
+          SELECT 1
+          FROM Trening_klijenta t
+          WHERE t.ID_klijenta = Klijenti.ID_klijenta
+            AND date(t.Datum_treninga) >= date('now', 'localtime', '-29 days')
+            AND date(t.Datum_treninga) <= date('now', 'localtime')
+        ) THEN 1
+        ELSE 0
+      END
+    `
+
+    const params = [] // Parametri za neobavezne filtre
+
+    // Ako je proslijeđen ID klijenta, ažurira se samo taj klijent
+    if (clientId !== null && clientId !== undefined) {
+      sql += ' WHERE ID_klijenta = ?'
+      params.push(clientId)
+    } // if zagrada
+    // Inače se, ako je zadan trener, ažuriraju samo njegovi klijenti
+    else if (trainerId !== null && trainerId !== undefined) {
+      sql += ' WHERE ID_trenera = ?'
+      params.push(trainerId)
+    } // else if zagrada
+
+    await db.run(sql, params) // Spremanje izračunatih statusa u bazu
+  } //updateClientActivityStatus zagrada
+
   // FUNKCIJA ZA DOHVAT SVIH KLIJENATA TRENERA (DASHBOARD):
   async getClientsForTrainer(trainerId) {
 
@@ -23,6 +60,9 @@ class ClientService {
     if (!trainerId) {
       throw new Error('ID trenera nije dostupan.') //prekid funkcija ako trener nije dostupan
     } //if zagrada
+
+    //prije dohvata popisa klijenta usklađuju se statusi ((ne)aktivan) s datumima treninga
+    await this.updateClientActivityStatus(trainerId)
 
     //izvršavanje sql upita za klijente trenera
     const rezultat = await db.query(
@@ -40,14 +80,12 @@ class ClientService {
         Aktivan_flag
       FROM Klijenti
       WHERE ID_trenera = ?
-      ORDER BY Ime_klijenta,
-               Prezime_klijenta;
+      ORDER BY Ime_klijenta, Prezime_klijenta;
       `, [trainerId]
     ) //const rezultat zagrada
 
     //pretvaranje sql podataka u objekte koje koristi vue aplikacija
-    return (rezultat.values || []).map(
-      client => ({
+    return (rezultat.values || []).map( client => ({
         //mapiranje sql id-a na javascript ID
         id: client.ID_klijenta,
         firstName: client.Ime_klijenta, //mapiranje imena klijenta
@@ -55,15 +93,12 @@ class ClientService {
         gender: client.Spol,
         contact: client.Kontakt,
         height: client.Visina_cm,
-        startingWeight:
-          client.Pocetna_tezina_kg,
+        startingWeight: client.Pocetna_tezina_kg,
         experience: client.Iskustvo,
         note: client.Napomena,
         //pretvaranje sqlite flag-a u javascriptov boolean
-        active:
-          Number(client.Aktivan_flag) === 1
-      }) //client zagrada
-    ) //return zagrada
+        active: Number(client.Aktivan_flag) === 1 // SQLite 1/0 pretvara se u boolean
+      })) //return zagrada
 
   } //getClientsForTrainer zagrada
 
@@ -83,6 +118,9 @@ class ClientService {
       return null
     } //if zagrada
 
+    //ažuriranje statusa ((ne)aktivan) odabranog klijenta prije čitanja podataka
+    await this.updateClientActivityStatus(null, clientId)
+
     //dohvat samo onih klijenata koji pripadaju treneru
     const rezultat = await db.query(
       `
@@ -99,21 +137,17 @@ class ClientService {
         Napomena,
         Aktivan_flag
       FROM Klijenti
-      WHERE ID_klijenta = ?
-        AND ID_trenera = ?;
-      `,
-      [clientId, trainerId]
+      WHERE ID_klijenta = ? AND ID_trenera = ?;
+      `, [clientId, trainerId]
     ) //rezultat zagrada
 
     //provjera je li pronađen barem jedan zapis
-    if (
-      !rezultat.values || rezultat.values.length === 0
-    ) {
+    if ( !rezultat.values || rezultat.values.length === 0 ) {
       //ako klijent ne postoji ili ne pripada treneru vraća se null
       return null
-    } //return zagrada
+    } //if  zagrada
 
-    //uzimanje prvog i jedinog očekivanog rezultata
+    //uzimanje prvog pronađenog klijenta
     const client = rezultat.values[0]
 
     //vraćanje klijenta u javascript obliku
@@ -125,13 +159,11 @@ class ClientService {
       gender: client.Spol,
       contact: client.Kontakt,
       height: client.Visina_cm,
-      startingWeight:
-        client.Pocetna_tezina_kg,
+      startingWeight: client.Pocetna_tezina_kg,
       experience: client.Iskustvo,
       note: client.Napomena,
       //pretvaranje sqlite flag vrijenosti u javascript boolean
-      active:
-        Number(client.Aktivan_flag) === 1
+      active: Number(client.Aktivan_flag) === 1
     } //Return zagrada
 
   } //getClientById zagrada
