@@ -12,7 +12,7 @@ class TrainingTypeService {
         return databaseService.db
     } //getDatabase zagrada
 
-    //metoda za dohvat svih vrsta treninga iz baze (za potrebe padajučeg izbornika na detaljima klijenta tab treninzi)
+    //metoda za dohvat svih vrsta treninga iz baze (pr. za potrebe padajučeg izbornika na detaljima klijenta tab treninzi)
     async getTrainingTypes() {
         //dohvat trenutno otvorene baze
         const db = this.getDatabase()
@@ -40,8 +40,6 @@ class TrainingTypeService {
     }//getTrainingTypes zagrada
 
 } //class trainingTypeService zagrada
-
-
 
 //kreiranje jedne instance servisa (ime instance je trainingTypeService) (ime klase je TrainingTypeService)
 const trainingTypeService = new TrainingTypeService()

@@ -43,6 +43,32 @@ class TrainingService {
     return Number(redak.Prosjecna_ocjena)
   } //getAverageRating zagrada
 
+  //FUNKCIJA ZA DOHVAT OCJENA TRENINGA KROZ VRIJEME (ZA POTREBE GRAFIKONA)
+  async getRatingHistory(clientId, trainingTypeId) {
+     // Dohvat trenutno otvorene SQLite baze
+    const db = this.getDatabase()
+    // Provjera je li baza otvorena
+    if (!db) {
+      throw new Error('SQLite baza nije otvorena')
+    } //if zagrada
+
+    // Dohvat datuma i ocjena za odabranog klijenta i vrstu treninga //ASC - od najstarijeg do najnovijeg - prirodno da linija grafikona ide kroz vrijeme
+    const rezultat = await db.query(
+      `SELECT Datum_treninga, Ocjena_treninga
+      FROM Trening_klijenta
+      WHERE ID_klijenta = ? AND ID_vrsta_treninga = ? AND Ocjena_treninga IS NOT NULL
+      ORDER BY Datum_treninga ASC, ID_treninga_klijenta ASC;                            
+      `, [clientId, trainingTypeId]
+    ) //rezultat zagrada
+
+    // Pretvaranje SQL rezultata u objekte koje koristi Vue grafikon
+    return (rezultat.values || []).map(training => ({
+      date: training.Datum_treninga,
+      rating: Number(training.Ocjena_treninga)
+    })) //return zagrada
+
+  } //getRatingHistory zagrada
+
   // Dohvat svih treninga klijenta, od najnovijeg prema najstarijem
   async getClientTrainings(clientId) {
     // Dohvat bazu

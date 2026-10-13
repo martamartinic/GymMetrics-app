@@ -255,24 +255,35 @@
 
                              <!-- GRAFIKON -->
                               <div class="statistics-title">OCJENE TRENINGA KROZ VRIJEME </div>
-                                <!-- ZA SADA SAMO PREDVIĐEN PROSTOR, IMPLEMENTACIJA GRAFIKONA KASNIJE -->
-                                <div class="chart-placeholder">
-                                    <q-icon
-                                        name="show-chart"
-                                        size="42px"
-                                    />
-                                    <div class="chart-placeholder-text"> GRAFIKON ĆE BITI DODAN NAKNADNO </div>
-                               
-                                </div>
+                              <!-- FILTRI VREMENSKOG RAZDOBLJA PRIKAZA OCJENA TRENINGA -->
+                               <div class="chart-period-filters">
+                                  <!--pojedinačni filter vremenskog razdoblja -->
+                                  <button 
+                                    v-for="period in ratingPeriods"
+                                    :key="period.id"
+                                    type="button"
+                                    class="chart-period-filter"
+                                    :class="{'chart-period-filter-active' : selectedRatingPeriod === period.id}"
+                                    @click="selectedRatingPeriod = period.id"
+                                  > {{ period.label }}
+                                  </button>
+                               </div>
+                                <!-- PROSTOR GRAFIKONA  -->
+                                    <div v-if="filteredRatingHistory.length > 0" class="chart-container">
+                                      <RatingLineChart :data="filteredRatingHistory" :period="selectedRatingPeriod" />
+                                    </div>
+                                    <div v-else class="chart-placeholder-empty-text"> NEMA PODATAKA ZA ODABRANO RAZDOBLJE </div>
                             </div>
 
                             <!-- DETALJI TRENINGA -->
                              <div class="training-history-container">
                                 <div class="statistics-title"> POSLJEDNJI TRENINZI  </div>
-                                <!--ako nema treninga za klijenta još prikazuje se informativna poruka -->
-                                <div v-if="visibleTrainings.length === 0" class="empty-trainings"> Za ovog klijenta još nema spremljenih treninga </div>
+                                <!-- ako nema treninga za klijenta na keranu se prikazuje naveden tekst -->
+                                <div v-if="trainings.length === 0" class="empty-trainings"> Za ovog klijenta još nema spremljenih treninga </div>
+                                <!--ako nema treninga za klijenta za odabranu vrstu treninga na ekranu se prikazuje informativna poruka -->
+                                <div v-else-if="visibleTrainings.length === 0" class="empty-trainings"> Za odabranu vrstu treninga nema spremljenih treninga </div>
                                 
-                                <!-- kad kasnije spojimo traningservice tu će se prikazivat stvarne kartice treninga -->
+                                <!-- prikaz kartice treninga -->
                                  <div
                                     v-for="training in visibleTrainings"
                                     :key="training.id"
@@ -398,6 +409,9 @@ import {useAuthStore} from '@/stores/auth.store'
 //dohvat auth store instance
 const authStore = useAuthStore()
 
+//uvoz komponente za linijski grafikon ocjena kroz vrijeme
+import RatingLineChart from '@/components/RatingLineChart.vue'
+
 //OSNOVNE REAKTIVNE VARIJABLE:
 
 //trenutno otvoren tab
@@ -416,6 +430,12 @@ const trainingTypes = ref([])
 const selectedTrainingType = ref(null)
 //prosječna ocjena trenutno odabrane vrste treninga // za sada nema podataka jer trainingService nije napravljen
 const averageRating = ref(0)
+//popis ocjena treninga kroz vrijeme za odabranu vrstu treninga
+const ratingHistory = ref([])
+//filteri -->trenutno odabrano vremensko razdoblje grafikona
+const selectedRatingPeriod = ref('1m')
+//filteri - dostupna vremenska razdoblja grafikona
+const ratingPeriods = [{id: '1m', label: '1 MJ'}, {id:'6m', label:'6 MJ'}, {id:'1y', label:'1 GOD'}, {id:'all', label:'SVE'}]
 //popis svih treninga //za sada preazna jer trainingService nije implementiran
 const trainings = ref([])
 //broj treninga koji se trenutno prikazuje
@@ -424,17 +444,14 @@ const visibleTrainingCount = ref(5)
 //IZGLED ZVJEZDICA PREMA OCJENI -->PR. AKO JE OCJENA 4.5 ČETIRI ZVJEZDICE SU ISPUNJENE I PETAK JE POLUISPUNJENA, UMJESTO DA BUDU SAMO 4 PUNE I 5. PRAZNA
 function getStarClass(rating, star) {
   const numericRating = Number(rating) || 0
-
   //puna zvjezdica
   if(star <= Math.floor(numericRating)) {
     return 'star-filled'
   } //if zagrada
-
   //polupopunjena zvjezdica kod decimalne ocjene
   if(star === Math.ceil(numericRating) && numericRating % 1 !== 0) {
     return 'star-half'
   } //if zagrada
-
   //prazna zvjezdica
   return 'star-empty'
 } //function getStarClass zagrada
@@ -467,21 +484,9 @@ const filteredTrainings = computed(() => {
 
    //iz svih treninga klijenta izdavajaju se samo oni koji pripadaju trenutno odabranoj vrsti treninga --samo one koji imaju isti ID vrste treninga kao dropdown
    return trainings.value.filter(training => 
-      //traži se vrsta treninga po nazivu
+      //traži se vrsta treninga
       //{ const trainingType = trainingTypes.value.find(type => type.id === selectedTrainingType.value)
-      training.trainingTypeId === selectedTrainingType.value)   
-
-/*      //ako vrsta treninga nije pronađena trening se ne prikazuje
-      if(!trainingType) {
-        return false
-      } //if zagrada
-
-      //usporedba vrste treninga treninga s trenutno odabranom vrstom treninga
-      return training.trainingType === trainingType.name
-
-   }) //return trainings.value.filter zagrada
-    */
-
+      Number(training.trainingTypeId) === Number(selectedTrainingType.value))   //Number radi izbjegavanja problema ako SQLite vrati broj a quasar ili route query parametar privremeno da string
 }) //const filteredTrainings zagrada
 //POPIS TRENINGA KOJI SU TRENUTNO VIDLJIVI
 const visibleTrainings = computed(() => {
@@ -520,7 +525,6 @@ function closePage() {
 } //function closePage zagrada
 
 //DOHVAT KLIJENTA:
-
 //funkcija koja dohvaća podatke o klijentu iz sqlite baze
 async function loadClient() {
     //provjera postoji li ID trenutno prijavljenog trenera
@@ -694,14 +698,109 @@ async function loadAverageRating() {
     }//catch zagrada
 
 }//loadAverageRating zagrada
-//kada trener promijeni vrstu treninga, ponovno se dohvaća prosjek iz baze
+//FUNKCIJA ZA DOHVAT OCJENA TRENINGA KROZ VRIJEME (ZA GRAFIKON)
+async function loadRatingHistory() {
+   // Ako nije odabrana vrsta treninga ili klijent nije učitan, grafikon nema podatke
+    if(!selectedTrainingType.value || !client.value) {
+        ratingHistory.value = []
+        return
+    } //if zagrada
+    try {
+        console.log('RATING HISTORY:', ratingHistory.value)
+        // Dohvat svih ocjena za odabranog klijenta i odabranu vrstu treninga
+        ratingHistory.value = await trainingService.getRatingHistory(
+            client.value.id,
+            selectedTrainingType.value
+        ) //ratingHistory zagrada
+    } //try zagrada
+    catch(error) {
+        console.error('Greška pri dohvatu povijesti ocjena: ', error)
+        // Ako dohvat ne uspije, grafikon ostaje bez podataka
+        ratingHistory.value = []
+        Notify.create({
+            message: 'Greška pri dohvatu ocjena treninga kroz vrijeme',
+            type: 'negative',
+            position: 'top'
+        }) //Notify zagrada
+    } //catch zagrada  
+} //loadRatingHistory zagrada
+//watch za promjenu vrste treninga --> kada trener promijeni vrstu treninga, ponovno se dohvaća prosjek iz baze
 watch(selectedTrainingType, async () => {
   //vraća se prikaz na prvih 5 treninga kad se odabere nova vrsta treninga u padajućem izborniku
   visibleTrainingCount.value = 5
-
+  //vraćanje grafikna na filter 1MJ
+  selectedRatingPeriod.value = '1m'
   //ponovni dohvat prosječne ocjene za novo odabranu vrstu treninga
   await loadAverageRating()
-})
+  //ponovni dohvat povijesti ocjene treninga za novo odabranu vrstu treninga
+  await loadRatingHistory()
+
+}) //watch zagrada
+
+//FUNKCIJA ZA ODREĐIVANJE POČETNOG DATUMA PREMA ODABRANOM VREMENSKOM RAZDOBLJU (GRAFIKON)
+function getRatingPeriodStartDate(period){
+  //dohvat današnjeg datuma
+  const today = new Date()
+  //postavljanje vremena na početak dana
+  today.setHours(0,0,0,0)
+
+  //ako je odabrano posljednjih mjesec dana
+  if(period === '1m'){
+    //vraćanje datuma mjesec dana unatrag
+    const startDate = new Date(today) 
+    startDate.setMonth(startDate.getMonth() -1 )
+    return startDate
+  } //if zagrada
+  //ako je odabrano posljednjih 6 mjeseci
+  if(period === '6m') {
+    //vraćanje datuma 6 mjeseci unatrag
+    const startDate = new Date(today)
+    startDate.setMonth(startDate.getMonth() -6 )
+    return startDate
+  } //if zagrada
+  //ako je odabrana godina dana
+  if(period === '1y') {
+    //vraćanje datuma lito dan unatrag
+    const startDate = new Date(today)
+    startDate.setFullYear(startDate.getFullYear() -1)
+    return startDate
+  } //if zagrada
+  //za opciju SVE nema početnog ograničenja
+  return null
+} //getRatingPeriodStartDate zagrada
+
+//OCJENE KOJE PRIPADAJU TRENUTNO ODABRANOM VREMENSKOM RAZDOBLJU NA GRAFIKONU
+const filteredRatingHistory = computed(() => {
+  //ako nema podataka iz baze, vraća se prazna lista
+  if(ratingHistory.value.length === 0){return []}
+  //ako je odabrano razdoblje sve, vraćaju je svi dohvaćeni pdoaci
+  if(selectedRatingPeriod.value === 'all') {
+    return ratingHistory.value
+  } //if azgrada
+
+  //dohvat početnog datuma odabranog razdoblja
+  const startDate = getRatingPeriodStartDate(selectedRatingPeriod.value)
+ 
+  //ako početni datum nije dostupan, vraćaju se svi podaci
+  if(!startDate) {return ratingHistory.value}
+
+  //postavljanje krajnjeg datuma na kraj današnjeg dana
+  const endDate = new Date()
+  endDate.setHours(23,59,59,999)
+
+  //filtriranje zapisa prema stvarnom datumu treninga
+  return ratingHistory.value.filter(training => {
+    //provjera postoji li datum treninga
+    if(!training.date) {return false}
+    //pretvaranje datuma treninga u Date objekt
+    const trainingDate = new Date(`${training.date}T00:00:00`)
+    //provjera je li datum valjan
+    if(Number.isNaN(trainingDate.getTime())) { return false }
+    //trening mora biti unutar odabranog vremenskog razdoblja
+    return trainingDate >= startDate && trainingDate <= endDate
+  }) //return ratingHistory zagrada
+
+}) //filteredRatingHistory zagrada
 
 //FUNKCIJA DODAVANJE TRENINGA --> ODLAZAK NA EKRAN ADDTRAININGPAGE.VUE KAD SE KLIKNE NA GUMB DODAJ TRENING
 function addTraining() {
@@ -724,26 +823,20 @@ async function loadClientTrainings() {
     try {
         // Dohvat svih treninga iz baze
         trainings.value = await trainingService.getClientTrainings(client.value.id)
-
         //nakon dohvata prikazuju se prvih 5 zapisa treninga (ili manje ako ih je manje od 5 u bazi) 
         visibleTrainingCount.value = 5
     } //try zagrada
     catch(error) {
         console.error('Greška pri dohvatu treninga: ', error)
-
         //ako dohvat ne uspje, koristi se prazna lista
         trainings.value = []
-
         Notify.create({
             message: 'Greška pri dohvatu zapisa detalja treninga klijenta',
             type:'negative',
             position: 'top'
         }) //Notify zagrada
-
     }//catch zagrada
-
 } //loadClientTrainings zagrada
-
 
 //FUNKCIJA PRIKAZA VIŠE TRENINGA
 function showMoreTrainings() {
@@ -792,28 +885,27 @@ async function deleteTraining(training) {
             return
         } //if zagrada
 
-        // Ponovni dohvat treninga iz baze - Time će se iz popisa treninga ukloniti obrisani trening
+        // nakon brisanja zapisa treninga ponovni dohvat ostalih treninga iz baze - Time će se iz popisa treninga ukloniti obrisani trening
         await loadClientTrainings()
-        // Ponovni dohvat prosječne ocjene za trenutno odabranu vrstu treninga //time će se osvježiti: prosjek zvjezdice progress bar postotak napretka
-        
+        // nakon brisanja zapisa treninga ponovni dohvat prosječne ocjene za trenutno odabranu vrstu treninga //time će se osvježiti: prosjek zvjezdice progress bar postotak napretka
         await loadAverageRating()
+        //nakon brisanja zapisa treninga, ponovni dohvat povijesti ocjena ostalih treninga za grafikon
+        await loadRatingHistory()
+        
         Notify.create({
             message: 'Trening je uspješno obrisan',
             type: 'positive',
             position: 'top'
         }) //notify zagrada
-
     } //try zagrada
     catch(error) {
         console.error('Greška pri brisanju treninga: ', error)
-
         Notify.create({
             message: 'Greška pri brisanju treninga',
             type: 'negative',
             position: 'top'
         }) //notify zagrada
     } //catch zagrada
-
 } //deleteTraining zagrada
 
 //UREĐIVANJE KLIJENTA
@@ -832,7 +924,6 @@ async function deleteClient() {
     if(!client.value) {
         return
     } //if zagrada
-
     //pokušaj brisanja
     try{
         //poziv clientService metode
@@ -849,14 +940,12 @@ async function deleteClient() {
             //prekid 
             return
         } //if zagrada
-
         //poruka o uspješnom brisanju
         Notify.create({
             message:'Klijent je uspješno obrisan',
             type:'positive',
             position:'top'
         }) //notify zagrada
-
         //povratak na dashboard
         router.push('/dashboard')
     }//try zagrada
@@ -868,7 +957,6 @@ async function deleteClient() {
             position:'top'
         }) //notify zagrada
     } //catch zagrada
-
 } //function deleteClient zagrada
 
 //Funkcija koja prikazuje POTVRDU prije brisanja klijenta
@@ -877,17 +965,15 @@ function confirmDeleteClient() {
     const confirmed = window.confirm(
         'Brisanjem klijenta TRAJNO se brišu SVI podaci vezani uz njega što uključuje treninge, mjerenja, testove, prehranu, zd stanje, k sliku i termine. \n \n Jeste li sigurni da želite nastaviti?'
     ) //Const confirmed
-
     //ako korisnik nije potvrdio, prekida se funkcija
     if(!confirmed) {
         return
     }//if zagrada
-
     //ako je korisnik potvrdio, pokreće se stvarno brisanje
     deleteClient()
 } //function confirmDeleteClient zagrada
 
-//UČITAVANJE PODATAKA PRI OTVARANJU EKRANA
+//UČITAVANJE/DOHVAT PODATAKA PRI OTVARANJU EKRANA
 // onMounted se izvršava kada se komponenta učita.
 onMounted(async () => {
   // Prvo dohvat stvarnih podataka klijenta jer sve ostalo dolazi nakon toga
@@ -897,15 +983,15 @@ onMounted(async () => {
   if(client.value) {
     // Dohvat vrsta treninga iz baze.
     await loadTrainingTypes()
-    //nakon dohvata klijenta i vrsta treninga, dohvat stvarnog prosjeka ocjena iz baze
+    //nakon dohvata klijenta i vrsta treninga, dohvat prosječne ocjene za početno odabranu vrstu treninga 
     await loadAverageRating()
+    //dohvat ocjena kroz vrijeme za početno odabranu vrstu treninga
+    await loadRatingHistory()
 
-    //nakon što postoji klijent dohvaćaju se njegovi treninzi
+    //nakon što postoji klijent i odabrana je vrsta treninga, dohvaćaju se njegovi treninzi
     await loadClientTrainings()
   } //if zagrada
-
 }) //onMounted zagrada
-
 
 </script>
 
@@ -916,7 +1002,6 @@ onMounted(async () => {
   height: 100%;  /* Stranica zauzima raspoloživu visinu između headera i footera. */
   background: var(--q-dark-page);
 }
-
 /* GLAVNI KONTEJNER   */
 .client-details-content {
   width: 100%;                /* Zauzima cijelu dostupnu širinu. */
@@ -925,8 +1010,7 @@ onMounted(async () => {
   flex-direction: column;    /* Elementi se slažu jedan ispod drugog */
   box-sizing: border-box;   /* Padding i širina računaju se unutar elementa */
 }
-
-/* NASLOV EKRANA   */
+/* HEADER EKRANA   */
 .page-header {
   flex-shrink: 0;                 /* Header se ne smije smanjivati kada sadržaj raste. */
   height: 58px;                  /* Visina internog naslova stranice. */
@@ -936,7 +1020,6 @@ onMounted(async () => {
   padding: 0 12px;           /* Unutarnji horizontalni razmak. */
   position: relative;       /* Omogućuje apsolutno pozicioniranje X gumba. */
 }
-
 /* Naslov DETALJI KLIJENTA */
 .page-title {
   color: #BDC4D4;
@@ -944,7 +1027,6 @@ onMounted(async () => {
   font-weight: 600;
   text-align: center;
 }
-
 /* Gumb za zatvaranje ekrana */
 .close-button {
   position: absolute;    /* Pozicioniramo ga desno od naslova. */
@@ -1168,16 +1250,15 @@ onMounted(async () => {
 
 /* STATISTIKA TRENINGA    */
 .training-statistics-container {
-  /* Obrub kontejnera. */
-  border: 1px solid rgba(189, 196, 212, 0.45);
-  /* Zaobljeni rubovi. */
-  border-radius: 16px;
-  /* Unutarnji razmak. */
-  padding: 16px;
-  /* Razmak prema sljedećem kontejneru zapisa treninga */
-  margin-bottom: 30px;
-  /* Box model. */
-  box-sizing: border-box;
+  border: 1px solid rgba(189, 196, 212, 0.45);  /* Obrub kontejnera */
+  border-radius: 16px;    /* Zaobljeni rubovi */
+  padding: 16px;    /* Unutarnji razmak */ 
+  margin-bottom: 30px;   /* Razmak prema sljedećem kontejneru zapisa treninga */
+  box-sizing: border-box; /*box model */
+  width: 100%; /*kontejner zauzima dostupnu širinu */
+  min-width: 0; /*omogućuje pravilno smanjivanje sdržaja */
+  overflow: hidden; /*zbog grafikona --> ništa iz grafikona ne smije prijeći obrub statistike */
+  min-height: 580px; /*minimalna visina --> da grafikon bude pregledniji */
 }
 .training-history-container{
      /* Glavni vidljivi obrub povijesti treninga. */
@@ -1325,32 +1406,49 @@ onMounted(async () => {
   flex-shrink: 0;   /* Postotak se ne smije smanjivati. */
 }
 
-/* PLACEHOLDER GRAFIKONA   */
-.chart-placeholder {
-  /* Obrub prostora za grafikon. */
-  border: 1px solid rgba(189, 196, 212, 0.25);
-  /* Zaobljeni rubovi. */
-  border-radius: 12px;
-  /* Minimalna visina prostora. */
-  min-height: 180px;
-  /* Centriranje sadržaja. */
-  display: flex;
-  /* Vertikalni raspored. */
-  flex-direction: column;
-  /* Horizontalno centriranje. */
-  align-items: center;
-  /* Vertikalno centriranje. */
-  justify-content: center;
-  /* Razmak između ikone i teksta. */
-  gap: 10px;
-  /* Boja ikone. */
-  color: rgba(189, 196, 212, 0.45);
+.chart-container{
+  width: 100%; /*graf zauzima cijelu površinu prostora */
+  min-width: 0; /*omogućeno skupljanje sadržaja bez širenja roditelja */
+  overflow: hidden; /*sprječavanje prelijevanja izvan obruba */
 }
-.chart-placeholder-text {
+/*FILTERI VREMENSKOG RAZDOBLJA GRAFIKONA */
+.chart-period-filters{
+  display: flex; /*filteri se slažu vodoravno */
+  flex-wrap: nowrap; /*filteri ostaju u jednom retku */
+  gap: 4px;  /*razmak između filtera */
+  width: 100%; /*filteri zauzimaju dostupnu širinu */ 
+  margin-bottom: 14px; /*razmak ispod filtera */ 
+  margin-top: -4px; /* razmak iznad filtera */
+  overflow: hidden; /* sprječavanje prelijevanja */
+  padding-bottom: 2px; /* unutarnji donji prostor */
+}
+/*POJEDINAČNI FILTER */
+.chart-period-filter{
+  flex: 1; /*filter ne zauzima više prostora nego što treba */
+  border: none; /*uklanjanje defaultnog obruba */
+  background: transparent; /*uklanjanje defaultne pozadine */
+  color: rgba(189, 196, 212, 0.55); /*boja NEaktivnog filtera */
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 4px; /* unutarnji razmak */
+  border-radius: 8px; /*zaobljeni rubovi */
+  white-space: nowrap; /*spriječavanje prijeloma teksta */
+  min-height: 40px; /*minimalna visina na tap */
+  transition: background-color 0.2s ease, color 0.2s ease; /* vizualna tranzicija */
+}
+/*AKTIVNI FILTER */
+.chart-period-filter-active{
+  background: rgba(189, 196, 212, 0.12);
+  color:#BDC4D4;
+  font-weight: 800;
+}
+.chart-placeholder-empty-text {
   /* Boja teksta. */
   color: rgba(189, 196, 212, 0.65);
   font-size: 13px;
+  font-weight: 600;
   text-align: center;
+  margin-top: 100px;
 }
 
 /* ZADNJI TRENINZI */
