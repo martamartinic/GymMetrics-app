@@ -362,6 +362,11 @@
 
                      </template>
 
+                     <!-- TAB MJERENJA: -->
+                      <template v-else-if="activeTab === 'mjerenja'">
+                        <ClientMeasurementsTab v-if="client" :client="client" />
+                      </template>
+
                      <!--OSTALI TABOVI -->
                      <template v-else>
                         <!-- privremeni sadržaj ostalih tabova Kasnije se povezuje sa odgovarajućim tablicama i servisima -->
@@ -408,6 +413,8 @@ import trainingService from '@/services/training.service'
 import {useAuthStore} from '@/stores/auth.store'
 //dohvat auth store instance
 const authStore = useAuthStore()
+// Komponenta za prikaz mjerenja odabranog klijenta
+import ClientMeasurementsTab from '@/components/ClientMeasurementsTab.vue'
 
 //uvoz komponente za linijski grafikon ocjena kroz vrijeme
 import RatingLineChart from '@/components/RatingLineChart.vue'
@@ -415,7 +422,7 @@ import RatingLineChart from '@/components/RatingLineChart.vue'
 //OSNOVNE REAKTIVNE VARIJABLE:
 
 //trenutno otvoren tab
-const activeTab = ref('treninzi')
+const activeTab = ref( route.query.tab === 'mjerenja' ? 'mjerenja' : 'treninzi')
 //podaci trenutno otvorenog klijenta
 const client = ref(null)
 //cilj trenutno otvorenog klijenta

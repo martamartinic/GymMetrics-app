@@ -11,9 +11,7 @@
         <div class="page-header">
 
             <!-- NASLOV NA VRHU EKRANA -->
-            <div class="page-title">
-            DODAVANJE TRENINGA
-            </div>
+            <div class="page-title"> DODAVANJE TRENINGA </div>
 
             <q-btn
             flat 
@@ -223,7 +221,22 @@ const selectedTrainingTypeName = computed(() => {
 
 //funkcija za zatvaranje ekrana za dodavanje novog treninga klijenta (X GUMB)
 function closePage() {
-  router.back() //vraćanje korisnika na prethodni ekran
+  //router.back() //vraćanje korisnika na prethodni ekran
+  //povratak na tab treninzi
+   // Provjera ID-a klijenta iz aktivne rute
+  const clientId = getClientId()
+
+  // Povratak na detalje klijenta ako je ID valjan
+  if (clientId) {
+    router.replace({
+      path: `/dashboard/clients/${clientId}`,
+      query: { tab: 'treninzi' }
+    })
+  } else {
+    // Povratak na prethodni ekran ako ID nije valjan
+    router.back()
+  }
+ //close page zagrada
 }
 
 //VALIDACIJA DATUMA (1. unesen, 2. format GGGG-MM-DD, 3. datum stvarno postoji u kalendaru)
@@ -381,10 +394,7 @@ function getClientId() {
 //FUNKCIJA ZA SPREMANJE TRENINGA
 async function saveTraining() {
  // PRVO PROVJERA DATUMA
-  const validacijaDatuma = validacijaDatumaTreninga(
-    datumTreninga.value
-  ) //const validacijaDatuma zagrada
-
+  const validacijaDatuma = validacijaDatumaTreninga( datumTreninga.value ) //const validacijaDatuma zagrada
   // Ako datum nije ispravan, prikazuje se upozorenje i ne pokreće se spremanje
   if (validacijaDatuma !== true) {
     Notify.create({
@@ -474,7 +484,10 @@ async function saveTraining() {
     // --> clientDetailsPage taj ID iskorištava kako bi se automatski izmijenila vrsta treninga u meniju i samim time statistika da se treneru prikaže novo stanje i utjecaj na napredak nakon dodanog treninga umjesto da bude selektiran defaultna vrsta treninga iz baze (kao kod tek dolaska na ekran detalja klijenta) pa da trener mora ručno mijenjati da bi vidio novo stanje
        router.replace({
         path: `/dashboard/clients/${clientId}`, 
-        query: {trainingTypeId: String(selectedTrainingType.value)}
+        query: {
+          tab: 'treninzi',
+          trainingTypeId: String(selectedTrainingType.value)
+        }
     }) //router replace 
 
   } //try zagrada
@@ -482,10 +495,7 @@ async function saveTraining() {
     console.error('GREŠKA PRI SPREMANJU TRENINGA:', error)
 
     // Pokušavamo dohvatiti stvarnu tekstualnu poruku greške.
-    const porukaGreske =
-    error?.message ||
-    error?.error?.message ||
-    String(error)
+    const porukaGreske = error?.message || error?.error?.message || String(error)
 
     Notify.create({
       message: `Greška pri spremanju treninga: ${porukaGreske}`,

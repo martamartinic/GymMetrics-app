@@ -55,6 +55,12 @@ const routes = [
          component: () => import('@/pages/AddTrainingPage.vue')
         },
 
+        //ruta za unos mjerenja odabranog klijenta
+        {
+          path: 'clients/:id/measurement/new',
+          component: () => import('@/pages/AddMeasurementPage.vue')
+        },
+
       // {
       //   path: 'trainingTypes', 
       //   component: () => import('@/pages/TrainingTypesPage.vue'),

@@ -82,7 +82,7 @@ class TrainingService {
       throw new Error('SQLite baza nije otvorena.')
     }//if zagrada
 
-    // Dohvat treninge i njihoveih vježbi
+    // Dohvat treninge i njihovih vježbi
     const rezultat = await db.query(`
       SELECT
         t.ID_treninga_klijenta,
