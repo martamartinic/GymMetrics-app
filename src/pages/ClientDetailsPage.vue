@@ -281,7 +281,7 @@
                                 <!-- ako nema treninga za klijenta na keranu se prikazuje naveden tekst -->
                                 <div v-if="trainings.length === 0" class="empty-trainings"> Za ovog klijenta još nema spremljenih treninga </div>
                                 <!--ako nema treninga za klijenta za odabranu vrstu treninga na ekranu se prikazuje informativna poruka -->
-                                <div v-else-if="visibleTrainings.length === 0" class="empty-trainings"> Za odabranu vrstu treninga nema spremljenih treninga </div>
+                                <div v-else-if="visibleTrainings.length === 0" class="empty-trainings"> ZA ODABRANU VRSTU TRENINGA NEMA SPREMLJENIH ZAPISA TRENINGA </div>
                                 
                                 <!-- prikaz kartice treninga -->
                                  <div
@@ -367,6 +367,11 @@
                         <ClientMeasurementsTab v-if="client" :client="client" />
                       </template>
 
+                      <!-- TAB TESTOVI: -->
+                       <template v-else-if="activeTab === 'testovi'">
+                        <ClientTestTab v-if="client" :client="client" />
+                       </template>
+
                      <!--OSTALI TABOVI -->
                      <template v-else>
                         <!-- privremeni sadržaj ostalih tabova Kasnije se povezuje sa odgovarajućim tablicama i servisima -->
@@ -382,9 +387,7 @@
                   <div v-else class="empty-state"> Klijent nije pronađen </div>
 
             </div>
-
-        </div>
-    
+        </div>    
     </q-page>
 
 </template>
@@ -413,8 +416,10 @@ import trainingService from '@/services/training.service'
 import {useAuthStore} from '@/stores/auth.store'
 //dohvat auth store instance
 const authStore = useAuthStore()
-// Komponenta za prikaz mjerenja odabranog klijenta
+// Komponenta za prikaz mjerenja odabranog klijenta - tab mjerenja
 import ClientMeasurementsTab from '@/components/ClientMeasurementsTab.vue'
+//komponenta za prikaz testova odabranog klijenta - tab testovi
+import ClientTestTab from '@/components/ClientTestsTab.vue'
 
 //uvoz komponente za linijski grafikon ocjena kroz vrijeme
 import RatingLineChart from '@/components/RatingLineChart.vue'
@@ -422,7 +427,10 @@ import RatingLineChart from '@/components/RatingLineChart.vue'
 //OSNOVNE REAKTIVNE VARIJABLE:
 
 //trenutno otvoren tab
-const activeTab = ref( route.query.tab === 'mjerenja' ? 'mjerenja' : 'treninzi')
+const allowedTabs = ['treninzi', 'mjerenja', 'testovi', 'zdravstveno', 'krvnaSlika', 'prehrana']
+const activeTab = ref(allowedTabs.includes(route.query.tab) ? route.query.tab : 'treninzi')      ///otvara se trenutno odabrani tab iz URL-a, ako ga nema ili je neispravan otvara se defaultni treninzi
+//const activeTab = ref( route.query.tab === 'testovi' ? 'mjerenja' : 'treninzi')
+
 //podaci trenutno otvorenog klijenta
 const client = ref(null)
 //cilj trenutno otvorenog klijenta

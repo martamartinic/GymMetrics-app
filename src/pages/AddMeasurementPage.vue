@@ -87,7 +87,7 @@
                     />                         
                     <q-space class="q-my-sm" />
 
-                    <!-- Odabir datuma -->
+                    <!-- datuma mjerenja -->
                     <q-input                        
                         outlined
                         rounded
@@ -153,7 +153,7 @@
                             class="goal-dialog-close"
                             @click="closeDialog"
                         />
-            </q-card-section>
+                    </q-card-section>
                     <!-- Naziv nove vrste mjerenja -->
                     <q-input
                         v-model="newTypeName"
@@ -255,7 +255,7 @@ const newTypeName = ref('') //naziv nove vrste mjerenja
 const newTypeUnit = ref('') //mjerna jedinica nove vrste mjerenja
 const savingType = ref(false) //oznaka spremanja nove vrste mjerenja
 
-// Povratak na prethodni ekran
+// Povratak na prethodni ekran detalja klijenta tab mjerenja
 function closePage() {
     // Navigacija natrag na detalje klijenta
    // router.back()
@@ -264,8 +264,8 @@ function closePage() {
         query: {
             tab: 'mjerenja',
             measurementTypeId: String(selectedMeasurementTypeId.value)
-        }
-    })
+        } //query zagrada
+    }) //router.replace zagrada
 } // closePage
 
 //VALIDACIJA VRIJEDNOSTI MJERENJA KLIJENTA
@@ -275,7 +275,7 @@ function validacijaVrijednostiMjerenja(value) {
 
     if (!tekstVrijednosti) {
         return 'Vrijednost mjerenja je obavezna'
-    } // if
+    } // if zagrada
 
     // Decimalni separator mora biti točka
     if (tekstVrijednosti.includes(',')) {
@@ -306,7 +306,7 @@ function validacijaDatumaMjerenja(value) {
     
     //provjera formata datuma godina-mjesec-dan
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        return 'Datum mjerenja mora biti u formatu GGGG-MM-DD'
+        return 'Datum mjerenja mora biti u formatu godina-mjesec-dan (GGGG-MM-DD)'
     } //if zagrada
 
     //dijeli datum na godine, mjesece i dane
@@ -323,12 +323,12 @@ function validacijaDatumaMjerenja(value) {
         return 'Datum mjerenja ne postoji u kalendaru'
     } //if zagrada
 
-    //ako su sve provjere uspješne, pravilo je zadovoljeno
+    //ako su sve provjere uspješne, vraća true
     return true
 
 } //validacijaDatumaMjerenja zagrada
 
-//POPUP --> SPREMANJE NOVE VRSTE MJERENJA I AUTOMATSKI ODABIR U DROPDOWN-U NAKON
+//POPUP --> SPREMANJE NOVE VRSTE MJERENJA I AUTOMATSKI ODABIR U DROPDOWN-U NAKON SPREMANJA
 async function saveMeasurementType() {
     // Provjera obveznog naziva
     if (!newTypeName.value.trim()) {
@@ -373,9 +373,9 @@ async function saveMeasurementType() {
         // Zatvaranje prozora nakon spremanja
         typeDialog.value = false
 
-        // Potvrda uspješnog unosa
+        // Potvrda uspješnog spremanja nove vrste mjeranja
         Notify.create({
-            message: 'Nova vrsta mjerenja je spremljena',
+            message: 'Nova vrsta mjerenja je uspješno spremljena',
             type: 'positive',
             position: 'top'
         })
@@ -401,7 +401,7 @@ function closeDialog() {
 } //closeGoalDialog zagrada
 
 
-// Čitanje dostupnih vrsta mjerenja
+//FUNKCIJA ZA UČITAVANJE VRSTA MJERENJA
 async function loadMeasurementTypes() {
     // Uključivanje pokazatelja učitavanja
     loadingTypes.value = true
@@ -432,7 +432,7 @@ async function loadMeasurementTypes() {
     } // try/catch/finally
 } // loadMeasurementTypes
 
-// Provjera unosa i spremanje mjerenja
+// Provjera unosa i spremanje mjerenja klijenta
 async function saveMeasurement() {
     // Provjera valjanosti ID-a klijenta
     if (!Number.isInteger(clientId.value) || clientId.value <= 0) {
@@ -509,22 +509,22 @@ async function saveMeasurement() {
             query: {
                 tab: 'mjerenja',
                 measurementTypeId: String(selectedMeasurementTypeId.value)
-            }
-        })
+            } //query zagrada
+        }) //notify zagrada
     } catch (error) {
-        console.error('Greška pri spremanju mjerenja: ', error)
+        console.error('Greška pri spremanju mjerenja klijenta : ', error)
 
         // Poruka greške koju je vratio servis ili baza
         Notify.create({
-            message: error?.message || error?.error?.message || 'Greška pri spremanju mjerenja',
+            message: error?.message || error?.error?.message || 'Greška pri spremanju mjerenja kliijenta',
             type: 'negative',
             position: 'top',
             timeout: 5000
-        })
+        }) //notify zagrada
     } finally {
         // Isključivanje pokazatelja spremanja bez obzira na ishod
         saving.value = false
-    } // try/catch/finally
+    } //finally zagrada
 } // saveMeasurement
 
 // Početno čitanje vrsta mjerenja pri otvaranju ekrana
@@ -548,15 +548,16 @@ onMounted(async () => {
     // Čitanje vrsta mjerenja
     await loadMeasurementTypes()
 }) // onMounted
+
 </script>
 
 <style scoped>
-/* Glavna pozadina ekrana za unos mjerenja */
+
+/* Glavna pozadina ekrana za unos mjerenja klijenta */
 .add-measurement-page {
     height: 100%;
     background: var(--q-dark-page);
 }
-
 /* Glavni raspored ekrana */
 .add-measurement-content {
     width: 100%;
@@ -565,7 +566,6 @@ onMounted(async () => {
     flex-direction: column;
     box-sizing: border-box;
 }
-
 /* Zaglavlje ekrana */
 .page-header {
     flex-shrink: 0;
@@ -576,7 +576,6 @@ onMounted(async () => {
     padding: 0 12px;
     position: relative;
 }
-
 /* Naslov ekrana */
 .page-title {
     color: #BDC4D4;
@@ -587,7 +586,6 @@ onMounted(async () => {
     flex-direction: column;
     justify-content: center;
 }
-
 /* Gumb za zatvaranje */
 .close-button {
     position: absolute;
@@ -596,7 +594,6 @@ onMounted(async () => {
     padding: 0;
     min-width: 0;
 }
-
 /* Područje koje se može pomicati */
 .page-scroll-area {
     flex: 1;
@@ -605,7 +602,6 @@ onMounted(async () => {
     padding: 12px 16px 28px;
     box-sizing: border-box;
 }
-
 /* Kontejner polja obrasca */
 .measurement-form-container {
     border: 1px solid rgba(189, 196, 212, 0.45);

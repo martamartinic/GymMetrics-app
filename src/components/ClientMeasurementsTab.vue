@@ -220,6 +220,7 @@
 </template>
 
 <script setup>
+
 // Vue funkcije za reaktivno stanje, izračunate vrijednosti i životni ciklus
 import { computed, onMounted, ref, watch } from 'vue'
 // Router služi za otvaranje obrasca i čitanje query parametara
@@ -280,10 +281,10 @@ const progressPoruka = computed(() => {
         return 'Ne postoji zadnji rezultat odabrane vrste mjerenja za izračun postotne promjene'
     } //if zagrada
     // Rezervna poruka za ostale slučajeve bez postotka
-    return 'Postotak promjene trenutačno nije moguće izračunati'
+    return 'Postotak promjene trenutno nije moguće izračunati'
 }) //progressPoruka zagrada
 
-// Trenutačno odabrana vrsta mjerenja
+// Trenutno odabrana vrsta mjerenja
 const selectedMeasurementType = computed(() => {
     // Traženje vrste prema njezinu ID-u
     return measurementTypes.value.find(
@@ -302,15 +303,11 @@ const selectedMeasurementTypeName = computed(() => {
 // Zapisi samo za trenutačno odabranu vrstu mjerenja
 const filteredMeasurements = computed(() => {
     // Bez odabrane vrste nema zapisa za prikaz
-    if (!selectedMeasurementTypeId.value) {
-        return []
-    } // if
+    if (!selectedMeasurementTypeId.value) { return [] } // if
 
     // Filtriranje prema ID-u vrste mjerenja
     return allMeasurements.value.filter(
-        measurement =>
-            Number(measurement.measurementTypeId) ===
-            Number(selectedMeasurementTypeId.value)
+        measurement => Number(measurement.measurementTypeId) === Number(selectedMeasurementTypeId.value)
     )
 }) // filteredMeasurements
 
@@ -334,9 +331,7 @@ const chronologicalMeasurements = computed(() => {
 // Početni rezultat za trenutačno odabranu vrstu
 const initialValue = computed(() => {
     // Bez vrste mjerenja početna vrijednost nije dostupna
-    if (!selectedMeasurementType.value) {
-        return null
-    } // if
+    if (!selectedMeasurementType.value) { return null } // if
 
     // Težina koristi početnu težinu spremljenu na profilu klijenta
     if (selectedMeasurementType.value.name.toLowerCase() === 'težina') {
@@ -368,18 +363,12 @@ const progressPercent = computed(() => {
 
     // Ako nedostaje jedna vrijednost, postotak se ne može izračunati
     if (
-        initial === null ||
-        initial === undefined ||
-        latest === null ||
-        latest === undefined
-    ) {
-        return null
-    } // if
+        initial === null || initial === undefined 
+        || latest === null || latest === undefined
+    ) { return null } // if
 
     // Nulta početna vrijednost ne dopušta dijeljenje
-    if (Number(initial) === 0) {
-        return null
-    } // if
+    if (Number(initial) === 0) { return null } // if
 
     // Promjena se računa u odnosu na početnu vrijednost
     return ((Number(latest) - Number(initial)) / Number(initial)) * 100
@@ -388,22 +377,16 @@ const progressPercent = computed(() => {
 // Tekst napretka sa strelicom i predznakom
 const progressText = computed(() => {
     // Kada nema valjanog postotka, prikazuje se crtica
-    if (progressPercent.value === null) {
-        return '—'
-    } // if
+    if (progressPercent.value === null) { return '—' } // if
 
     // Promjena se zaokružuje na dvije decimale
     const roundedChange = Math.round(progressPercent.value * 100) / 100
 
     // Jednaka početna i završna vrijednost prikazuju nulti napredak
-    if (roundedChange === 0) {
-        return '→ 0%'
-    } // if
+    if (roundedChange === 0) { return '→ 0%' } // if
 
     // Pozitivna promjena prikazuje strelicu prema gore
-    if (roundedChange > 0) {
-        return `↑ +${roundedChange.toFixed(2)}%`
-    } // if
+    if (roundedChange > 0) { return `↑ +${roundedChange.toFixed(2)}%` } // if
 
     // Negativna promjena prikazuje strelicu prema dolje
     return `↓ ${roundedChange.toFixed(2)}%`
@@ -412,9 +395,7 @@ const progressText = computed(() => {
 // Duljina trake prati apsolutnu veličinu promjene
 const progressBarValue = computed(() => {
     // Traka ostaje prazna ako se postotak ne može izračunati
-    if (progressPercent.value === null) {
-        return 0
-    } // if
+    if (progressPercent.value === null) { return 0 } // if
 
     // Prikaz trake ograničen je na raspon od nula do jedan
     return Math.min(Math.abs(progressPercent.value) / 100, 1)
@@ -426,7 +407,7 @@ const newestFirstMeasurements = computed(() => {
     return [...chronologicalMeasurements.value].reverse()
 }) // newestFirstMeasurements
 
-// Trenutačno vidljiv dio povijesti mjerenja
+// Trenutno vidljiv dio povijesti mjerenja
 const visibleMeasurements = computed(() => {
     // Prikazuje se prvih pet zapisa ili sljedećih pet nakon klika
     return newestFirstMeasurements.value.slice(0, visibleMeasurementCount.value)
@@ -456,17 +437,13 @@ const filteredMeasurementHistory = computed(() => {
     return history
         .filter(measurement => {
             // Zapis bez datuma nije prikladan za grafikon
-            if (!measurement.date) {
-                return false
-            } // if
+            if (!measurement.date) { return false } // if
 
             // Pretvaranje datuma u lokalni Date objekt
             const measurementDate = new Date(`${measurement.date}T00:00:00`)
 
             // Neispravan datum isključuje se iz grafikona
-            if (Number.isNaN(measurementDate.getTime())) {
-                return false
-            } // if
+            if (Number.isNaN(measurementDate.getTime())) { return false } // if
 
             // Provjera granica odabranog razdoblja
             return measurementDate >= startDate && measurementDate <= endDate
@@ -483,7 +460,6 @@ const filteredMeasurementHistory = computed(() => {
 function getPeriodStartDate(period) {
     // Današnji datum prema lokalnom vremenu
     const today = new Date()
-
     // Postavljanje vremena na početak dana
     today.setHours(0, 0, 0, 0)
 
@@ -523,9 +499,7 @@ function formatValue(value) {
 // Otvaranje obrasca za unos novog mjerenja
 function addMeasurement() {
     // Provjera postoji li klijent
-    if (!props.client?.id) {
-        return
-    } // if
+    if (!props.client?.id) { return } // if
 
     // Navigacija na zaseban ekran za unos
     router.push(`/dashboard/clients/${props.client.id}/measurement/new`)
@@ -559,17 +533,16 @@ async function loadMeasurements() {
         // Primjena vrste poslane s obrasca za unos
         if (Number.isInteger(queryTypeId) && queryTypeExists) {
             selectedMeasurementTypeId.value = queryTypeId
-        } else if (
-            !measurementTypes.value.some(
+        } else if (!measurementTypes.value.some(
                 type => type.id === Number(selectedMeasurementTypeId.value)
             )
         ) {
             // Početni odabir je prva dostupna vrsta mjerenja
             selectedMeasurementTypeId.value = measurementTypes.value[0]?.id ?? null
-        } // if/else
+        } // else if zagrada
     } catch (error) {
         // Zapis greške za razvoj
-        console.error('Greška pri čitanju mjerenja klijenta', error)
+        console.error('Greška pri čitanju mjerenja klijenta: ', error)
 
         // Prazne vrijednosti omogućuju prikaz sigurnog praznog stanja
         allMeasurements.value = []
@@ -602,19 +575,14 @@ function showMoreMeasurements() {
 // Brisanje pojedinačnog zapisa mjerenja
 async function deleteMeasurement(measurement) {
     // Provjera postoji li zapis
-    if (!measurement) {
-        return
-    } // if
+    if (!measurement) { return } // if
 
     // Potvrda prije trajnog brisanja
     const confirmed = window.confirm(
-        'Jeste li sigurni da želite obrisati ovo mjerenje?'
+        'Jeste li sigurni da želite obrisati ovo mjerenje klijenta?'
     )
-
     // Prekid ako brisanje nije potvrđeno
-    if (!confirmed) {
-        return
-    } // if
+    if (!confirmed) { return } // if
 
     // Pokušaj brisanja zapisa
     try {
@@ -629,7 +597,6 @@ async function deleteMeasurement(measurement) {
                 type: 'negative',
                 position: 'top'
             })
-
             // Prekid daljnjeg postupka
             return
         } // if
@@ -639,17 +606,17 @@ async function deleteMeasurement(measurement) {
 
         // Poruka o uspješnom brisanju
         Notify.create({
-            message: 'Mjerenje je uspješno obrisano',
+            message: 'Uspješno brisanje mjerenja klijenta',
             type: 'positive',
             position: 'top'
         })
     } catch (error) {
         // Zapis greške za razvoj
-        console.error('Greška pri brisanju mjerenja', error)
+        console.error('Greška pri brisanju mjerenja klijenta', error)
 
         // Obavijest o neuspješnom brisanju
         Notify.create({
-            message: 'Greška pri brisanju mjerenja',
+            message: 'Greška pri brisanju mjerenja klijenta',
             type: 'negative',
             position: 'top'
         })
@@ -667,12 +634,14 @@ watch(selectedMeasurementTypeId, () => {
 
 // Početno čitanje mjerenja pri prikazu kartice
 onMounted(async () => {
-    // Čitanje podataka klijenta
+    // Čitanje podataka mjerenja klijenta
     await loadMeasurements()
 }) // onMounted
+
 </script>
 
 <style scoped>
+
 /* Glavni kontejner kartice mjerenja */
 .measurements-tab {
     width: 100%;

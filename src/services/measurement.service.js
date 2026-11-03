@@ -13,14 +13,10 @@ class MeasurementService {
     const rezultat = await this.getDatabase().query(sql, params)
 
     // Podrška za adaptere koji vraćaju niz ili objekt sa svojstvom values
-    if (Array.isArray(rezultat)) {
-      return rezultat
-    }
+    if (Array.isArray(rezultat)) { return rezultat }
 
     // Vraćanje zapisa iz standardnog rezultata SQLite upita
-    if (Array.isArray(rezultat?.values)) {
-      return rezultat.values
-    }
+    if (Array.isArray(rezultat?.values)) { return rezultat.values }
 
     // Prazan niz ako rezultat nema očekivani oblik
     return []
@@ -53,14 +49,10 @@ class MeasurementService {
     const jedinica = String(unit ?? '').trim()
 
     // Provjera obveznog naziva
-    if (!naziv) {
-      throw new Error('Naziv mjerenja je obavezan')
-    }
+    if (!naziv) { throw new Error('Naziv mjerenja je obavezan') }
 
     // Provjera obvezne mjerne jedinice
-    if (!jedinica) {
-      throw new Error('Mjerna jedinica je obavezna')
-    }
+    if (!jedinica) { throw new Error('Mjerna jedinica mjerenja je obavezna') }
 
     // Provjera postoji li već vrsta s istim nazivom
     const postojeceVrste = await this.queryRows(
@@ -71,9 +63,7 @@ class MeasurementService {
     )
 
     // Sprječavanje stvaranja duplikata
-    if (postojeceVrste.length > 0) {
-      throw new Error('Vrsta mjerenja s tim nazivom već postoji')
-    }
+    if (postojeceVrste.length > 0) { throw new Error('Vrsta mjerenja s tim nazivom već postoji') }
 
     // Spremanje nove vrste mjerenja
     await this.getDatabase().run(
@@ -147,7 +137,7 @@ class MeasurementService {
             FROM Mjerenja_klijenta mc
             INNER JOIN Vrsta_mjerenja vm  ON vm.ID_vrsta_mjerenja = mc.ID_vrsta_mjerenja
             WHERE mc.ID_klijenta = ?
-            ORDER BY date(mc.Datum_mjerenja) ASC,  mc.ID_mjere_klijenta ASC`, [numericClientId]
+            ORDER BY date(mc.Datum_mjerenja) DESC,  mc.ID_mjere_klijenta DESC`, [numericClientId]
             ) // rows zagrada
 
         // Svaki zapis pretvara se u objekt prilagođen prikazu
@@ -207,7 +197,7 @@ class MeasurementService {
         const measurementDate = String(date ?? '').trim()
         // Provjera obveznog datuma i traženog formata
         if (!/^\d{4}-\d{2}-\d{2}$/.test(measurementDate)) {
-            throw new Error('Datum mjerenja mora biti u formatu GGGG-MM-DD')
+            throw new Error('Datum mjerenja mora biti u formatu godina-mjesec-dan (GGGG-MM-DD)')
         } //if zagrada
         // Razdvajanje datuma na godinu, mjesec i dan
         const [year, month, day] = measurementDate.split('-').map(Number)
@@ -256,7 +246,7 @@ class MeasurementService {
         // Brisanje je ograničeno na ID konkretnog zapisa
         return db.run(
             `DELETE FROM Mjerenja_klijenta WHERE ID_mjere_klijenta = ?`,
-                [Number(measurementId)],false
+                [Number(measurementId)], false
             ) //db. run zagrada
     } // deleteMeasurement
 

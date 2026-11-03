@@ -60,6 +60,11 @@ const routes = [
           path: 'clients/:id/measurement/new',
           component: () => import('@/pages/AddMeasurementPage.vue')
         },
+        //ruta za unos testova odabranog klijenta
+        {
+          path: 'clients/:id/test/new',
+          component: () => import('@/pages/AddTestsPage.vue')
+        },
 
       // {
       //   path: 'trainingTypes', 

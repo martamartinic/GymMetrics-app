@@ -109,7 +109,7 @@ function getNiceStep(rawStep) {
         multiplier = 5
     } else {
         multiplier = 10
-    } // if
+    } // else zagrada
 
     return multiplier * magnitude
 } // getNiceStep
@@ -141,7 +141,7 @@ function getAxisConfig(values) {
     const valueMagnitude = Math.max(Math.abs(minimum), Math.abs(maximum), 1)
 
     let step = valueMagnitude >=20 ? Math.pow(10, Math.floor(Math.log10(valueMagnitude / 2))) : 1
-    step = Math.max(1,step)
+    step = Math.max(1, step)
 
     // Povećanje koraka kod velikih raspona
     while (range / step > 6) { step = getNiceStep(step * 1.01) }
@@ -161,8 +161,7 @@ function getAxisConfig(values) {
     const gridTickCount = Math.round((axisMax - axisMin) / gridStep)
     const gridTicks = Array.from(
         { length: gridTickCount + 1 },
-        (_, index) => Number((axisMin + index * gridStep).toPrecision(12)
-        )
+        (_, index) => Number((axisMin + index * gridStep).toPrecision(12))
     )
     return {
         min: axisMin,
@@ -187,7 +186,7 @@ function getChartData() {
             !Number.isNaN(
                 new Date(`${item.date}T00:00:00`).getTime()
             )
-        )
+        ) //.filter zagrada
         .sort((a, b) => a.date.localeCompare(b.date))
 
     // Nema točaka ako nema valjanih mjerenja
@@ -195,7 +194,7 @@ function getChartData() {
         return []
     } // if
 
-    // Za jednomjesečni prikaz ostavljamo veći razmak između zapisa
+    // Za jednomjesečni prikaz stavlja se veći razmak između zapisa
     if (props.period === '1m') {
         const pointSpacing = 48
 
@@ -228,13 +227,13 @@ function getChartData() {
             result.push({
                 ...measurement,
                 plotX: cursor + index * monthPointGap
-            })
-        }) // forEach
+            }) //result zagrada
+        }) // group.forEach zagrada
 
         // Sljedeća skupina dobiva vlastiti prostor
         const groupWidth = Math.max(0, group.length - 1) * monthPointGap
         cursor += Math.max(monthGroupSpacing, groupWidth + monthPointGap + 24)
-    }) // forEach
+    }) // groups.forEach zagrada
 
     return result
 } // getChartData
@@ -305,7 +304,7 @@ function getGroupedAxisLabels(data) {
                 ? null
                 : date.getFullYear()
         }).filter(year => year !== null)
-    )
+    ) //years zagrada
 
     // Godina se prikazuje samo ako podaci obuhvaćaju više godina
     const showYear = years.size > 1
@@ -391,10 +390,7 @@ const xAxisLabelsPlugin = {
 
     afterDraw(chart) {
         const xScale = chart.scales.x
-
-        if (!xScale) {
-            return
-        } // if
+        if (!xScale) { return } // if
 
         const ctx = chart.ctx
         const data = chart.data.datasets?.[0]?.data || []
@@ -409,8 +405,8 @@ const xAxisLabelsPlugin = {
                 data.map(item => ({
                     date: item.date,
                     plotX: item.x
-                }))
-            )
+                })) //data.map zagrada
+            ) //: getGrouped... zagrada
 
         ctx.save()
         ctx.fillStyle = '#BDC4D4'
@@ -418,9 +414,7 @@ const xAxisLabelsPlugin = {
         ctx.textBaseline = 'top'
 
         labels.forEach(item => {
-            if (!item.label) {
-                return
-            } // if
+            if (!item.label) { return } // if
 
             const x = xScale.getPixelForValue(item.plotX)
             const y = xScale.bottom + 4
@@ -429,8 +423,8 @@ const xAxisLabelsPlugin = {
 
             item.label.split('\n').forEach((line, lineIndex) => {
                 ctx.fillText(line, x, y + lineIndex * 14)
-            })
-        }) // forEach
+            }) //item.label zagrada
+        }) // labels.forEach zagrada
 
         ctx.restore()
     } // afterDraw
@@ -442,17 +436,11 @@ const yAxisLabelsPlugin = {
 
     afterDraw(chart) {
         const yScale = chart.scales.y
-
-        if (!yScale) {
-            return
-        } // if
+        if (!yScale) { return } // if
 
         const ctx = chart.ctx
         const axisConfig = chart.options.plugins.measurementAxisConfig
-
-        if (!axisConfig?.ticks) {
-            return
-        } // if
+        if (!axisConfig?.ticks) { return } // if
 
         ctx.save()
         ctx.fillStyle = '#BDC4D4'
@@ -463,13 +451,11 @@ const yAxisLabelsPlugin = {
         axisConfig.ticks.forEach(value => {
             const y = yScale.getPixelForValue(value)
 
-            // Oznake izvan vidljivog dijela ne crtaju se
-            if (y < yScale.top - 1 || y > yScale.bottom + 1) {
-                return
-            } // if
+            // Oznake izvan vidljivog dijela se ne crtaju 
+            if (y < yScale.top - 1 || y > yScale.bottom + 1) { return } // if
 
             ctx.fillText(formatValue(value), 0, y)
-        }) // forEach
+        }) // axisConfig zagrada
 
         ctx.restore()
     } // afterDraw
@@ -477,10 +463,6 @@ const yAxisLabelsPlugin = {
 
 // Stvaranje fiksne Y-osi
 function createYAxisChart(axisConfig) {
-   // if (!yAxisCanvas.value) {  return } // if
-
-   // destroyYAxisChart()
-
    // Stvarne dimenzije canvasa fiksne Y-osi
     yAxisCanvas.value.width = 48
     yAxisCanvas.value.height = chartHeight
@@ -497,12 +479,8 @@ function createYAxisChart(axisConfig) {
             animation: false,
 
             plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: false
-                },
+                legend: { display: false },
+                tooltip: { enabled: false },
                 measurementAxisConfig: axisConfig
             },
 
@@ -512,7 +490,7 @@ function createYAxisChart(axisConfig) {
                     right: 0,
                     bottom: chartBottomSpace,
                     left: 0
-                }
+                } //padding zagrada
             },
 
             scales: {
@@ -520,23 +498,17 @@ function createYAxisChart(axisConfig) {
                     display: false,
                     min: 0,
                     max: 1
-                },
+                }, //x zagrada
                 y: {
                     min: axisConfig.min,
                     max: axisConfig.max,
-                    ticks: {
-                        display: false
-                    },
-                    grid: {
-                        display: false
-                    },
-                    border: {
-                        display: false
-                    }
-                }
-            }
-        }
-    })
+                    ticks: { display: false },
+                    grid: { display: false },
+                    border: { display: false  }
+                } //y zagrada
+            } //scales zagrada
+        } //options zagrada
+    }) //yAxisChartInstance zagrada
 } // createYAxisChart
 
 // Stvaranje glavnog grafikona mjerenja
@@ -544,9 +516,7 @@ async function createChart() {
     // Čekanje prikaza canvas elemenata
     await nextTick()
 
-    if (!chartCanvas.value || !yAxisCanvas.value) {
-        return
-    } // if
+    if (!chartCanvas.value || !yAxisCanvas.value) { return } // if
 
     // Priprema kronološki poredanih mjerenja
     const chartData = getChartData()
@@ -561,9 +531,7 @@ async function createChart() {
     // Izračun širine i vertikalne skale
     calculateChartWidth(chartData)
 
-    const axisConfig = getAxisConfig(
-        chartData.map(item => item.y)
-    )
+    const axisConfig = getAxisConfig( chartData.map(item => item.y))
 
     // Čekanje primjene dimenzija
     await nextTick()
@@ -595,7 +563,7 @@ async function createChart() {
                         date: item.date
                     })),
 
-                    // Boje i stil usklađeni s grafikonom ocjena
+                    // Boje i stil 
                     borderColor: '#52677D',
                     backgroundColor: 'rgba(82, 103, 125, 0.12)',
                     borderWidth: 2,
@@ -612,8 +580,8 @@ async function createChart() {
                     pointHoverBorderColor: '#52677D',
                     pointHoverBorderWidth: 2
                 }
-            ]
-        },
+            ] //datasets zagrada
+        }, //data zagrada
 
         options: {
             responsive: false,
@@ -631,10 +599,7 @@ async function createChart() {
             },
 
             plugins: {
-                legend: {
-                    display: false
-                },
-
+                legend: { display: false },
                 // Tooltip prikazuje puni datum i stvarnu vrijednost
                 tooltip: {
                     enabled: true,
@@ -648,9 +613,7 @@ async function createChart() {
                         title: items => {
                             const dateValue = items[0]?.raw?.date
 
-                            return dateValue
-                                ? formatTooltipDate(dateValue)
-                                : ''
+                            return dateValue ? formatTooltipDate(dateValue) : ''
                         },
 
                         label: context => {
@@ -659,19 +622,19 @@ async function createChart() {
                             return props.unit
                                 ? `Vrijednost: ${value} ${props.unit}`
                                 : `Vrijednost: ${value}`
-                        }
-                    }
-                }
-            },
+                        } //label zagrada
+                    } //callbacks zagrada
+                } //tooltip zagrada
+            }, //plugins azgrada
 
-            // Gornji i donji razmak odgovaraju grafikonu ocjena
+            // Gornji i donji razmak
             layout: {
                 padding: {
                     top: chartTopSpace,
                     right: 10,
                     bottom: chartBottomSpace,
                     left: 0
-                }
+                } //padding zagrada
             },
 
             scales: {
@@ -679,22 +642,16 @@ async function createChart() {
                     type: 'linear',
                     min: 0,
                     max: Math.max(
-                        1,
-                        chartPixelWidth.value -
-                            (props.period === '1m' ? 48 : edgeSpace)
-                    ),
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        display: false
-                    },
+                        1, chartPixelWidth.value - (props.period === '1m' ? 48 : edgeSpace)
+                    ), //max zagrada
+                    grid: { display: false },
+                    ticks: { display: false },
                     border: {
                         display: true,
                         color: '#52677D',
                         width: 1
-                    }
-                },
+                    } //border zagrada
+                }, //x zagrada
 
                 y: {
                     min: axisConfig.min,
@@ -703,26 +660,19 @@ async function createChart() {
                     // Mreža prati iste vrijednosti kao fiksna Y-os
                     afterBuildTicks(scale) {
                         scale.ticks = axisConfig.gridTicks.map(value => ({ value }))
-                    },
-
+                    }, //afterBuildTicks zagrada
                     grid: {
                         display: true,
                         drawOnChartArea: true,
                         color: 'rgba(189, 196, 212, 0.18)',
                         drawTicks: false,
                         lineWidth: 1
-                    },
-
-                    ticks: {
-                        display: false
-                    },
-
-                    border: {
-                        display: false
-                    }
-                }
-            }
-        },
+                    }, //grid zagrada
+                    ticks: { display: false },
+                    border: { display: false }
+                } //y zagrada
+            } //scales zagrada
+        }, //options zagrada
 
         // Klik na točku prikazuje njezin tooltip
         onClick: (event, elements, chart) => {
@@ -732,36 +682,24 @@ async function createChart() {
                 { intersect: true },
                 true
             )
-
-            if (!activeElements.length) {
-                return
-            } // if
+            if (!activeElements.length) { return } // if
 
             const element = activeElements[0]
 
             chart.setActiveElements([
-                {
-                    datasetIndex: element.datasetIndex,
-                    index: element.index
-                }
+                {datasetIndex: element.datasetIndex, index: element.index }
             ])
 
             chart.tooltip.setActiveElements(
                 [
-                    {
-                        datasetIndex: element.datasetIndex,
-                        index: element.index
-                    }
+                    { datasetIndex: element.datasetIndex, index: element.index }
                 ],
-                {
-                    x: element.element.x,
-                    y: element.element.y
-                }
+                { x: element.element.x, y: element.element.y }
             )
 
             chart.update('none')
-        }
-    })
+        } //onClick zagrada
+    }) //chartInstance zagrada
 
     // Pomicanje na početak nakon stvaranja grafikona
     await nextTick()
@@ -793,9 +731,7 @@ watch(
     () => {
         refreshChart()
     },
-    {
-        deep: true
-    }
+    { deep: true }
 ) // watch
 
 // Oslobađanje resursa pri napuštanju ekrana
@@ -806,6 +742,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+
 /* Glavni kontejner grafikona */
 .measurement-chart {
     display: flex;
