@@ -188,7 +188,7 @@
                 <!-- Datum zapisa -->
                 <div class="test-row">
                     <span class="test-label">Datum testa:</span>
-                    <span class="test-value"> {{ test.date }} </span>
+                    <span class="test-value"> {{formatDate(test.date) }} </span>
                 </div>
 
                 <!-- Vrijednost zapisa -->
@@ -462,6 +462,21 @@ function getPeriodStartDate(period) {
     startDate.setFullYear(startDate.getFullYear() - 1)
     return startDate   
 } //getPeriodStartDate zagrada
+
+// FUNKCIJA - DATUM IZ BAZE FORMATIRA SE ZA PRIKAZ U TABLICI I U ZAPISIMA TLAKA
+function formatDate(value) {
+    // Ako vrijednost nije dostupna, prikazuje se crtica
+    if ( !value ) {   return '—'  } // if
+
+    // Datum se razdvaja na godinu, mjesec i dan
+    const dateParts = String(value).split('-')
+
+   // Izvorna vrijednost vraća se ako datum nema očekivani format
+    if (dateParts.length !== 3) { return value  } // if
+
+    // Datum se prikazuje u hrvatskom formatu
+    return `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}.`
+} // formatValue
 
 //FUNKCIJA ZA FORMATIRANJE BROJČANE VRIJEDNOSTI ZA PRIKAZ
 function formatValue(value) {

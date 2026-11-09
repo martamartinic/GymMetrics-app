@@ -304,7 +304,7 @@
                                 </div> 
                                 <div class="training-row">
                                     <span class="training-label" >Datum treninga: </span>
-                                    <span class="training-value"> {{ training.date }}</span>
+                                    <span class="training-value"> {{ formatDate(training.date) }}</span>
                                 </div>
                                 <div class="training-row training-rating-row">
                                     <span class="training-label"> Ocjena treninga: </span>
@@ -372,6 +372,12 @@
                         <ClientTestTab v-if="client" :client="client" />
                        </template>
 
+                       <!-- TAB ZDRAVSTVENO STANJE: -->
+                       
+                        <template v-else-if="activeTab === 'zdravstveno'">
+                            <ClientHealthTab v-if="client" :client="client" />
+                        </template> 
+
                      <!--OSTALI TABOVI -->
                      <template v-else>
                         <!-- privremeni sadržaj ostalih tabova Kasnije se povezuje sa odgovarajućim tablicama i servisima -->
@@ -420,6 +426,8 @@ const authStore = useAuthStore()
 import ClientMeasurementsTab from '@/components/ClientMeasurementsTab.vue'
 //komponenta za prikaz testova odabranog klijenta - tab testovi
 import ClientTestTab from '@/components/ClientTestsTab.vue'
+//komponenta za prikaz zd stanja odabranog klijenta - tab zd stanje
+import ClientHealthTab from '@/components/ClientHealthTab.vue'
 
 //uvoz komponente za linijski grafikon ocjena kroz vrijeme
 import RatingLineChart from '@/components/RatingLineChart.vue'
@@ -455,6 +463,21 @@ const ratingPeriods = [{id: '1m', label: '1 MJ'}, {id:'6m', label:'6 MJ'}, {id:'
 const trainings = ref([])
 //broj treninga koji se trenutno prikazuje
 const visibleTrainingCount = ref(5)
+
+// FUNKCIJA - DATUM IZ BAZE FORMATIRA SE ZA PRIKAZ U TABLICI I U ZAPISIMA TLAKA
+function formatDate(value) {
+    // Ako vrijednost nije dostupna, prikazuje se crtica
+    if ( !value ) {   return '—'  } // if
+
+    // Datum se razdvaja na godinu, mjesec i dan
+    const dateParts = String(value).split('-')
+
+   // Izvorna vrijednost vraća se ako datum nema očekivani format
+    if (dateParts.length !== 3) { return value  } // if
+
+    // Datum se prikazuje u hrvatskom formatu
+    return `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}.`
+} // formatValue
 
 //IZGLED ZVJEZDICA PREMA OCJENI -->PR. AKO JE OCJENA 4.5 ČETIRI ZVJEZDICE SU ISPUNJENE I PETAK JE POLUISPUNJENA, UMJESTO DA BUDU SAMO 4 PUNE I 5. PRAZNA
 function getStarClass(rating, star) {

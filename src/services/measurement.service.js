@@ -209,6 +209,8 @@ class MeasurementService {
         if (!isRealDate) {
             throw new Error('Datum mjerenja ne postoji u kalendaru')
         } //if zagradda
+            //prekid spremanja ako je datum u budućnosti
+        if (parsedDate > new Date()) { throw new Error('Datum mjerenja ne može biti u budućnosti') }
 
         // Provjera postoji li klijent
         const clientRows = await this.queryRows(

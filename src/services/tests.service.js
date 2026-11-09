@@ -176,6 +176,9 @@ class TestsService {
         if(!isRealDate) {
             throw new Error('Datum testa ne postoji u kalendaru')
         } //if zagrada
+        //prekid spremanja ako je datum u budućnosti
+         if (parsedDate > new Date()) { throw new Error('Datum testa ne može biti u budućnosti') }
+
 
         //provjera postoji li klijent
         const clientRows = await this.queryRows(

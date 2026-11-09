@@ -1,7 +1,7 @@
 <!--EKRAN ZA DODAVANJE KLIJENTA -->
 
 <template>
-    <!-- CIJELI MOBILNI EKRAN APP -->
+    <!-- CIJELI EKRAN APP -->
   <q-page class="add-client-page">
 
     <!-- EKRAN KOJI DIJELI APP NA HEADER, SCROLL-ABILNU SREDINU I FOOTER -->

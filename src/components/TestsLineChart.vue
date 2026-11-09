@@ -537,10 +537,6 @@ async function createChart() {
                     pointBorderColor: '#6A85A1',
                     pointBorderWidth: 1.5,
                     pointHitRadius: 18,
-                    pointHoverRadius: 6,
-                    pointHoverBackgroundColor: '#52677D',
-                    pointHoverBorderColor: '#52677D',
-                    pointHoverBorderWidth: 2
                 }
             ] //Datasets zagrada
         }, //data zagrada

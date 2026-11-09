@@ -65,6 +65,11 @@ const routes = [
           path: 'clients/:id/test/new',
           component: () => import('@/pages/AddTestsPage.vue')
         },
+        //ruta za unos zdravstvenog stanja odabranog klijenta
+        {
+          path: 'clients/:id/health/new',
+          component: () => import('@/pages/AddClientHealthPage.vue')
+        },
 
       // {
       //   path: 'trainingTypes', 

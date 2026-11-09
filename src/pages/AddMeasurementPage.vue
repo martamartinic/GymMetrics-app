@@ -298,15 +298,15 @@ function validacijaVrijednostiMjerenja(value) {
     return true
 } // validacijaVrijednostiMjerenja
 
-//VALIDACIJA DATUMA (1. unesen, 2. format GGGG-MM-DD, 3. datum stvarno postoji u kalendaru)
+//VALIDACIJA DATUMA (1. unesen, 2. format GGGG-MM-DD, 3. datum stvarno postoji u kalendaru, 4. datum nije u budućnosti)
 function validacijaDatumaMjerenja(value) {
     if (!value || !value.trim()) {
         return 'Datum mjerenja je obavezan'
     } //if zagrada
     
     //provjera formata datuma godina-mjesec-dan
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        return 'Datum mjerenja mora biti u formatu godina-mjesec-dan (GGGG-MM-DD)'
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) { 
+        return 'Datum mjerenja mora biti u formatu godina-mjesec-dan (GGGG-MM-DD)' 
     } //if zagrada
 
     //dijeli datum na godine, mjesece i dane
@@ -317,10 +317,11 @@ function validacijaDatumaMjerenja(value) {
 
     //provjera je li javascript nakon stvaranja datuma zadržao potpuno iste vrijednosti godine, mjeseca i dana
     const isRealDate = date.getUTCFullYear() === year && date.getUTCMonth() === month -1 && date.getUTCDate() === day
-
     //ako datum ne postoji, vraća poruku greške
-    if(!isRealDate) {
-        return 'Datum mjerenja ne postoji u kalendaru'
+    if(!isRealDate) { return 'Datum mjerenja ne postoji u kalendaru' } //if zagrada
+
+    if(date > new Date().toISOString().split('T')[0]) {
+        return 'Datum mjerenja ne može biti u budućnosti'
     } //if zagrada
 
     //ako su sve provjere uspješne, vraća true
@@ -443,7 +444,7 @@ async function saveMeasurement() {
             position: 'top'
         })        
         return // Prekid spremanja
-    } // if
+    } // if zagrada
 
     // Provjera postoji li odabrana vrsta mjerenja
     if (!Number.isInteger(Number(selectedMeasurementTypeId.value)) || Number(selectedMeasurementTypeId.value) <= 0) {
@@ -479,7 +480,7 @@ async function saveMeasurement() {
             message: validacijaDatuma,
             type: 'warning',
             position: 'top'
-        })
+        }) //notify zagrada
         return
     } //if zagrada
 
@@ -494,14 +495,14 @@ async function saveMeasurement() {
             measurementTypeId: Number(selectedMeasurementTypeId.value),
             value: numericValue,
             date: measurementDate.value.trim()
-        })
+        }) //await zagrada
 
         // Poruka o uspješnom spremanju
         Notify.create({
             message: 'Mjerenje klijenta je uspješno spremljeno',
             type: 'positive',
             position: 'top'
-        })
+        }) //notify zagrada
 
         // Povratak na karticu mjerenja i prikaz mjerenja
         router.replace({
@@ -510,13 +511,13 @@ async function saveMeasurement() {
                 tab: 'mjerenja',
                 measurementTypeId: String(selectedMeasurementTypeId.value)
             } //query zagrada
-        }) //notify zagrada
+        }) //router.replace zagrada
     } catch (error) {
         console.error('Greška pri spremanju mjerenja klijenta : ', error)
 
         // Poruka greške koju je vratio servis ili baza
         Notify.create({
-            message: error?.message || error?.error?.message || 'Greška pri spremanju mjerenja kliijenta',
+            message: error?.message || 'Greška pri spremanju mjerenja kliijenta',
             type: 'negative',
             position: 'top',
             timeout: 5000

@@ -524,14 +524,6 @@ async function createChart(initialAnimation = true) {
           pointBorderWidth: 1.5,
           // Povećano područje za dodir
           pointHitRadius: 18,
-          // Veličina aktivne točke
-          pointHoverRadius: 6,
-          // Boja aktivne točke
-          pointHoverBackgroundColor: '#52677D',
-          // Boja obruba aktivne točke
-          pointHoverBorderColor: '#52677D',
-          // Debljina obruba aktivne točke
-          pointHoverBorderWidth: 2
         } // dataset zagrada
       ] // datasets zagrada
     }, //data zagrada

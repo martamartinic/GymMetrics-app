@@ -47,9 +47,7 @@
             </div>
 
             <!-- Poruka za vrijeme početnog čitanja podataka -->
-            <div v-if="loading" class="empty-measurements">
-                UČITAVANJE MJERENJA
-            </div>
+            <div v-if="loading" class="empty-measurements"> UČITAVANJE MJERENJA </div>
 
             <!-- Sažetak se prikazuje kada je odabrana vrsta mjerenja -->
             <template v-else-if="selectedMeasurementType">
@@ -97,9 +95,7 @@
             </template>
 
             <!-- Poruka kada nema vrsta mjerenja -->
-            <div v-else class="empty-measurements">
-                NEMA DOSTUPNIH VRSTA MJERENJA
-            </div>
+            <div v-else class="empty-measurements"> NEMA DOSTUPNIH VRSTA MJERENJA </div>
 
             <!-- Razdjelna crta između sažetka i grafikona -->
             <div class="section-separator"></div>
@@ -188,7 +184,7 @@
                 <div class="measurement-row">
                     <span class="measurement-label">Datum mjerenja:</span>
                     <span class="measurement-value">
-                        {{ measurement.date }}
+                        {{ formatDate(measurement.date) }}
                     </span>
                 </div>
 
@@ -433,10 +429,10 @@ const filteredMeasurementHistory = computed(() => {
     const endDate = new Date()
     endDate.setHours(23, 59, 59, 999)
 
-    // Zadržavaju se samo zapisi unutar odabranog razdoblja
+    // Zadržavanje samo zapisa unutar odabranog razdoblja
     return history
         .filter(measurement => {
-            // Zapis bez datuma nije prikladan za grafikon
+            // Zapis bez datuma nije za grafikon
             if (!measurement.date) { return false } // if
 
             // Pretvaranje datuma u lokalni Date objekt
@@ -447,13 +443,13 @@ const filteredMeasurementHistory = computed(() => {
 
             // Provjera granica odabranog razdoblja
             return measurementDate >= startDate && measurementDate <= endDate
-        }) // filter
+        }) // filter zagrada
         .map(measurement => ({
             // Datum ostaje stvarni datum spremljenog mjerenja
             date: measurement.date,
             // Vrijednost ostaje stvarna spremljena vrijednost
             value: measurement.value
-        })) // map
+        })) // map zagrada
 }) // filteredMeasurementHistory
 
 // Početni datum prema filteru grafikona
@@ -482,6 +478,21 @@ function getPeriodStartDate(period) {
     startDate.setFullYear(startDate.getFullYear() - 1)
     return startDate
 } // getPeriodStartDate
+
+// FUNKCIJA - DATUM IZ BAZE FORMATIRA SE ZA PRIKAZ U ZAPISIMA MJERENJA
+function formatDate(value) {
+    // Ako vrijednost nije dostupna, prikazuje se crtica
+    if ( !value ) {   return '—'  } // if
+
+    // Datum se razdvaja na godinu, mjesec i dan
+    const dateParts = String(value).split('-')
+
+   // Izvorna vrijednost vraća se ako datum nema očekivani format
+    if (dateParts.length !== 3) { return value  } // if
+
+    // Datum se prikazuje u hrvatskom formatu
+    return `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}.`
+} // formatValue
 
 // Formatiranje brojčane vrijednosti za prikaz
 function formatValue(value) {

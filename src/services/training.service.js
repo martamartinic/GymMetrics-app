@@ -232,12 +232,44 @@ async createTraining({clientId, trainingTypeId, date,  rating,  note,  exerciseI
   ) {
     throw new Error('ID vrste treninga nije valjan')
   } //if zagrada
-  // Provjera datuma
+  
+  // Provjera datuma --DODANO NOVO ! - PRIJE JE BILO SAMO IF (!date || !String(date).trim()) {throw new Error('Datum treninga je obavezan') }
+  const TrainingDate = String(date ?? '').trim() // Pretvara datum u string i uklanja razmake
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(TrainingDate)){
+        throw new Error('Datum treninga mora biti u formatu godina-mjesec-dan (GGGG-MM-DD)')
+    } //if zagrada
+    // Razdvajanje datuma na godinu, mjesec i dan
+    const [year, month, day] = TrainingDate.split('-').map(Number)
+    // Stvaranje datuma u UTC formatu radi provjere kalendarskog datuma
+    const parsedDate = new Date(Date.UTC(year, month - 1, day))
+    // Provjera postoji li uneseni datum u kalendaru
+    const isRealDate = parsedDate.getUTCFullYear() === year && parsedDate.getUTCMonth() === month - 1 &&  parsedDate.getUTCDate() === day
+    // Prekid spremanja ako datum ne postoji
+    if (!isRealDate) { throw new Error('Datum treninga ne postoji u kalendaru') } //if zagradda
+    //prekid spremanja ako je datum u budućnosti
+    if (parsedDate > new Date()) { throw new Error('Datum treninga ne može biti u budućnosti') }
+
   if (!date || !String(date).trim()) {
     throw new Error('Datum treninga je obavezan')
   } //if zagrada
+
   // Provjera ocjene
-  if (
+  if (numericRating === null || numericRating === undefined || !String(numericRating).trim()) {
+      return 'Ocjena treninga je obavezna'
+  } //if zagrada
+    //pretvorba vrijednosti u tekst radi provjere formata
+    const ratingText = String(numericRating).trim()
+    //provjera koristi li se točka, a ne zarez
+    if(!/^(?:[1-5](?:\.\d+)?)$/.test(ratingText)) {
+        //ako postoji zarez, javlja se poruka upozorenja
+        if(ratingText.includes(',')) {
+            return 'Decimalni broj ocjene odvaja se točkom (.)'
+        } //if zagrada
+        return 'Ocjena mora biti broj između 1.0 i 5.0'
+    } //if zagrada
+
+  //PRIJE JE BILO SAMO OVO BEZ OVOG ISPOD PROVJERE 'DATUM TRENINGA JE OBAVEZNA' (bez linija koda 256-269)
+    if (
     !Number.isFinite(numericRating) ||
     numericRating < 1 || numericRating > 5  )
     {

@@ -293,7 +293,7 @@ function validacijaRezultataTesta(value) {
     return true
 } //validacijaRezultataTesta zagrada
 
-//FUNKCIJA ZA VALIDACIJU DATUMA TESTA (1. unesen, 2. format GGGG-MM-DD, 3. datum stvarno postoji u kalendaru)
+//FUNKCIJA ZA VALIDACIJU DATUMA TESTA (1. unesen, 2. format GGGG-MM-DD, 3. datum stvarno postoji u kalendaru, 4. datum nije u budućnosti)
 function validacijaDatumaTesta(value) {
      if (!value || !value.trim()) {
         return 'Datum testa je obavezan'
@@ -312,10 +312,13 @@ function validacijaDatumaTesta(value) {
 
     //provjera je li javascript nakon stvaranja datuma zadržao potpuno iste vrijednosti godine, mjeseca i dana
     const isRealDate = date.getUTCFullYear() === year && date.getUTCMonth() === month -1 && date.getUTCDate() === day
-
     //ako datum ne postoji, vraća poruku greške
     if(!isRealDate) {
         return 'Datum testa ne postoji u kalendaru'
+    } //if zagrada
+
+    if(date > new Date().toISOString().split('T')[0]) {
+        return 'Datum testa ne može biti u budućnosti'
     } //if zagrada
 
     //ako su sve provjere uspješne, vraća true
