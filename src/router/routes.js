@@ -70,6 +70,16 @@ const routes = [
           path: 'clients/:id/health/new',
           component: () => import('@/pages/AddClientHealthPage.vue')
         },
+        //ruta za unos k slike odabranog klijenta
+     //   {
+      //    path: 'clients/:id/bloodTest/new',
+      //    component: () => import('@/pages/AddClientBloodTestPage.vue')
+     //   },
+        //ruta za unos prehrane odabranog klijenta
+        {
+          path: 'clients/:id/nutrition/new',
+          component: () => import('@/pages/AddClientNutritionPage.vue')
+        },
 
       // {
       //   path: 'trainingTypes', 

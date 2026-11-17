@@ -372,10 +372,14 @@
                         <ClientTestTab v-if="client" :client="client" />
                        </template>
 
-                       <!-- TAB ZDRAVSTVENO STANJE: -->
-                       
-                        <template v-else-if="activeTab === 'zdravstveno'">
-                            <ClientHealthTab v-if="client" :client="client" />
+                      <!-- TAB ZDRAVSTVENO STANJE: -->                       
+                      <template v-else-if="activeTab === 'zdravstveno'">
+                          <ClientHealthTab v-if="client" :client="client" />
+                      </template> 
+                      
+                      <!-- TAB ZDRAVSTVENO STANJE: -->                       
+                        <template v-else-if="activeTab === 'prehrana'">
+                            <ClientNutritionTab v-if="client" :client="client" />
                         </template> 
 
                      <!--OSTALI TABOVI -->
@@ -428,6 +432,9 @@ import ClientMeasurementsTab from '@/components/ClientMeasurementsTab.vue'
 import ClientTestTab from '@/components/ClientTestsTab.vue'
 //komponenta za prikaz zd stanja odabranog klijenta - tab zd stanje
 import ClientHealthTab from '@/components/ClientHealthTab.vue'
+//komponenta za prikaz prehrane odabranog klijenta - tab prehrana
+import ClientNutritionTab from '@/components/ClientNutritionTab.vue'
+
 
 //uvoz komponente za linijski grafikon ocjena kroz vrijeme
 import RatingLineChart from '@/components/RatingLineChart.vue'

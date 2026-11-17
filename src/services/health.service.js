@@ -92,8 +92,8 @@ class HealthService {
         sistolickiTlak: row.Sistolicki_tlak,
         dijastolickiTlak: row.Dijastolicki_tlak,    
         healthDate: row.Datum_zd_stanja, //datum unosa
-    })) //const tests zagrada
-    //vraća zapis testa
+    })) //const rows zagrada
+    //vraća zapis 
     return {rows}  //vraća objekt sa svojstvom rows koje sadrži niz zapisa
 
   } //async getClientHealth zagrada
@@ -154,7 +154,7 @@ class HealthService {
         (!Number.isFinite(numericSistolickiTlak) || numericSistolickiTlak < 0)
     ) {
         throw new Error('Sistolički tlak mora biti broj veći ili jednak 0')
-    }
+    } //if zagrada
 
     // Provjera dijastoličkog tlaka
     if ( numericDijastolickiTlak !== null &&
@@ -163,17 +163,6 @@ class HealthService {
         throw new Error('Dijastolički tlak mora biti broj veći ili jednak 0')
     }
 
-    //OD PRIJE: PROVJERA DA JE VRIJEDNOST SISTOLIČKOG I DIJASTOLIČKOG TLAKA BROJ VEĆI ILI JEDNAK 0 PRIJE UNOSA U BAZU --> KAKO BI SERVIS ODBIO NEISPRAVAN TLAK KAD GA POZOVE NEKA KOMPONENTA
-   /* const numericSistolickiTlak = Number(sistolickiTlak)     //pretvorba sistoličkog tlaka u broj
-    const numericDijastolickiTlak = Number(dijastolickiTlak) //pretvorba dijastoličkog tlaka u broj
-    if (isNaN(numericSistolickiTlak) || numericSistolickiTlak < 0) {
-        throw new Error('Sistolički tlak mora biti broj veći ili jednak 0')
-    } //if zagrada
-    if (isNaN(numericDijastolickiTlak) || numericDijastolickiTlak < 0) {
-        throw new Error('Dijastolički tlak mora biti broj veći ili jednak 0')
-    } //if zagrada   
-     */
-    
     // Provjera postoji li klijent u bazi
     const clientRows = await this.queryRows(
         `SELECT ID_klijenta FROM Klijenti WHERE ID_klijenta = ?`,  [numericClientId]

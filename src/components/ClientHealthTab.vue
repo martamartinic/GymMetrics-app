@@ -61,7 +61,7 @@
             :rows="filteredHealthRows"
             :columns="columns"
             row-key="id"
-            :rows-per-page-options="[5,10,20,0]"
+          
             separator="horizontal"
             no-data-label="ZA ODABRANU KATEGORIJU NEMA PODATAKA"
         >
@@ -71,6 +71,76 @@
                     {{ formatDate(slotProps.row.datum) }}
                 </q-td>
             </template>
+
+            <!-- VLASTITI DONJI DIO TABLICE -->
+            <template #bottom="scope">
+                <div class="health-table-bottom">
+                    <!-- BROJ ZAPISA PO STRANICI -->
+                    <div class="health-rows-control">
+                        <span class="health-rows-label"> Zapisa po stranici: </span>
+                        <q-select
+                            dense
+                            borderless
+                            emit-value
+                            map-options
+                            :model-value="pagination.rowsPerPage"
+                            :options="rowsPerPageOptions"
+                            popup-content-class="health-rows-per-page-popup"
+                            class="health-rows-select"
+                            aria-label="Broj zapisa po stranici"
+                            behavior="menu"
+                            menu-anchor="bottom left"
+                            menu-self="top left"
+                            @update:model-value="changeRowsPerPage"
+                        />
+                    </div>
+                    <!-- RASPON PRIKAZANIH ZAPISA I NAVIGACIJA -->
+                    <div class="health-pagination-control">
+                        <!-- RASPON PRIKAZANIH ZAPISA -->
+                        <span class="health-pagination-label">
+                            {{
+                                filteredHealthRows.length === 0
+                                    ? '0-0'
+                                    : (
+                                        (scope.pagination.page - 1) *
+                                        (scope.pagination.rowsPerPage || filteredHealthRows.length) + 1
+                                    ) + '-' +
+                                    Math.min(
+                                        scope.pagination.page *
+                                        (scope.pagination.rowsPerPage || filteredHealthRows.length),
+                                        filteredHealthRows.length
+                                    )
+                            }}
+                            od {{ filteredHealthRows.length }}
+                        </span>
+                        <!-- PRETHODNA STRANICA -->
+                        <q-btn
+                            flat
+                            round
+                            dense
+                            size="sm"
+                            icon="chevron_left"
+                            aria-label="Prethodna stranica"
+                            class="health-page-arrow"
+                            :disable="scope.isFirstPage"
+                            @click="scope.prevPage"
+                        />
+                        <!-- SLJEDEĆA STRANICA -->
+                        <q-btn
+                            flat
+                            round
+                            dense
+                            size="sm"
+                            icon="chevron_right"
+                            class="health-page-arrow"
+                            aria-label="Sljedeća stranica"
+                            :disable="scope.isLastPage"
+                            @click="scope.nextPage"
+                        />
+                    </div>
+                </div>
+            </template>
+
         </q-table>
     </div> <!-- <div class="health-items-container"> -->
 
@@ -205,6 +275,18 @@ const pagination = ref({
     page: 1,
     rowsPerPage: 5
 }) //pagination zagrada
+// OPCIJE BROJA ZAPISA PO STRANICI
+const rowsPerPageOptions = [
+    { label: '5', value: 5 },
+    { label: '10', value: 10 },
+    { label: '20', value: 20 },
+    { label: 'SVE', value: 0 }
+]
+// PROMJENA BROJA ZAPISA PO STRANICI
+function changeRowsPerPage(value) {
+    pagination.value.rowsPerPage = value
+    pagination.value.page = 1
+}
 
 // Podaci klijenta stižu iz roditeljske komponente
 const props = defineProps({
@@ -665,68 +747,164 @@ function addClientHealth() {
     margin-bottom: 4px;
 }
 
-/* Boja teksta u donjem dijelu tablice - records per page: x x-x of x */
-.health-table :deep(.q-table__bottom) {
+/* DONJI DIO TABLICE */
+.health-table-bottom {
     display: flex;
-    justify-content: flex-start;
+    flex-wrap: nowrap;
+    justify-content: space-between;
     align-items: center;
+    gap: 40px;
     width: 100%;
     min-height: 52px;
     padding: 8px 0;
     color: #BDC4D4;
     background: transparent;
     border-top: 1px solid rgba(189, 196, 212, 0.35);
+    box-sizing: border-box;
 }
-/* Boja oznake RECORDS PER PAGE */
-.health-table :deep(.q-table__bottom .q-table__control) {
-    justify-content: flex-start;
-    color: #BDC4D4;
+
+/* IZBORNIK BROJA ZAPISA */
+.health-rows-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
 }
-/* Oznaka RECORDS PER PAGE */
-.health-table :deep(.q-table__bottom .q-table__bottom-item) {
+
+/* TEKST ZAPISA PO STRANICI */
+.health-rows-label {
     color: #BDC4D4;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* POLJE ODABIRA BROJA ZAPISA */
+.health-rows-select {
+    width: 65px;
+    color: #BDC4D4;
+    font-size: 13px;
     font-weight: 600;
 }
-/* Uklanjanje donje crte i dodatnih obruba izbornika */
-.health-table :deep(.q-table__bottom .q-field__control::before),
-.health-table :deep(.q-table__bottom .q-field__control::after) {
+/* Uklanjanje donje crte polja */
+.health-rows-select :deep(.q-field__control::before),
+.health-rows-select :deep(.q-field__control::after) {
     display: none;
 }
-/* Boja odabranog broja redaka */
-.health-table :deep(.q-table__bottom .q-field__native),
-.health-table :deep(.q-table__bottom .q-field__input) {
-    color: #A8B9CC !important;
+/* Odabrani broj zapisa */
+.health-rows-select :deep(.q-field__native),
+.health-rows-select :deep(.q-field__input) {
+    color: #BDC4D4 !important;
     font-weight: 600;
 }
-/* Boja strelice izbornika */
-.health-table :deep(.q-table__bottom .q-icon) {
+/* Strelica izbornika */
+.health-rows-select :deep(.q-icon) {
     color: #BDC4D4 !important;
 }
-/* Brojač zapisa, primjerice 1-2 of 2 */
-.health-table :deep(.q-table__bottom .q-table__control:last-child) {
-    color: #BDC4D4;
-    font-weight: 600;
+
+/* POZADINA POLJA S ODABRANOM VRIJEDNOSTI */
+.health-rows-select :deep(.q-field__control) {
+    background: transparent !important;
+}
+
+/* POZADINA UNUTARNJEG POLJA */
+.health-rows-select :deep(.q-field__native),
+.health-rows-select :deep(.q-field__input),
+.health-rows-select :deep(.q-field__marginal),
+.health-rows-select :deep(.q-field__append) {
+    background: transparent !important;
+}
+
+/* TEKST ODABRANE VRIJEDNOSTI */
+.health-rows-select :deep(.q-field__native span),
+.health-rows-select :deep(.q-field__native),
+.health-rows-select :deep(.q-field__input) {
+    color: #BDC4D4 !important;
+    background: transparent !important;
+}
+
+/* UKLANJANJE SVIH SJENA I OKVIRA POLJA */
+.health-rows-select :deep(.q-field__control::before),
+.health-rows-select :deep(.q-field__control::after) {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
 
-/* Opcije izbornika broja redaka */
-:deep(.q-menu .q-item) {
-    background: #000000;
-    color: #BDC4D4;
+/* SAMO POPUP IZBORNIKA BROJA ZAPISA U OVOJ TABLICI */
+
+/* Vanjska površina otvorenog Quasar izbornika */
+:global(.q-menu.health-rows-per-page-popup),
+:global(.health-rows-per-page-popup) {
+    background: #000000 !important;
+    color: #BDC4D4 !important;
+    border: 1px solid rgba(189, 196, 212, 0.35) !important;
+    border-radius: 12px !important;
+    padding: 4px 0 !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+}
+/* Unutarnji popis opcija */
+:global(.health-rows-per-page-popup .q-list),
+:global(.health-rows-per-page-popup .q-virtual-scroll) {
+    background: #000000 !important;
+    color: #BDC4D4 !important;
+}
+/* Pojedinačne opcije 5, 10, 20 i SVE */
+:global(.health-rows-per-page-popup .q-item) {
+    background: #000000 !important;
+    color: #BDC4D4 !important;
     font-size: 14px;
     font-weight: 600;
     min-height: 36px;
 }
-
-/* Odabrana opcija */
-:deep(.q-menu .q-item--active) {
+/* Trenutačno odabrana opcija */
+:global(.health-rows-per-page-popup .q-item--selected) {
     background: #52677D !important;
-    color: #A8B9CC !important;
+    color: #BDC4D4 !important;
+}
+/* Opcija na koju se trenutačno prelazi pokazivačem */
+:global(.health-rows-per-page-popup .q-item--active) {
+    background: #52677D !important;
+    color: #BDC4D4 !important;
+}
+/* Tekst svih opcija */
+:global(.q-menu.health-rows-per-page-popup .q-item__label) {
+    color: #BDC4D4 !important;
+}
+/* Uklanjanje mogućih svijetlih slojeva unutar opcija */
+:global(.q-menu.health-rows-per-page-popup .q-focus-helper) {
+    /*background: transparent !important;*/
+    display: none !important;
+}
+/* Uklanjanje mogućeg bijelog sadržaja pseudoelemenata */
+:global(.q-menu.health-rows-per-page-popup::before),
+:global(.q-menu.health-rows-per-page-popup::after) {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+/* */
+
+/* RASPON ZAPISA I NAVIGACIJA */
+.health-pagination-control {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #BDC4D4;
 }
 
-/* Uklanjanje dodatnog naglašavanja aktivne opcije */
-:deep(.q-menu .q-item--active .q-item__label) {
-    color: #A8B9CC !important;
+/* Tekst primjerice 1-5 od 12 */
+.health-pagination-label {
+    color: #BDC4D4;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Strelice za promjenu stranice */
+.health-pagination-control :deep(.q-btn) {
+    color: #BDC4D4;
 }
 /* Unutarnji dio tablice omogućuje vertikalno i horizontalno pomicanje */
 .health-table :deep(.q-table__middle) {

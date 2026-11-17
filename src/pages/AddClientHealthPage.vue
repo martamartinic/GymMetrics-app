@@ -143,7 +143,6 @@
 
 <script setup>
 
-
 // Vue funkcije za reaktivno stanje i životni ciklus
 import { computed, /*onMounted,*/ ref } from 'vue'
 // Router omogućuje čitanje ID-a klijenta i navigaciju
@@ -174,9 +173,7 @@ function closePage() {
    // router.back()
    router.replace({
         path: `/dashboard/clients/${clientId.value}`,
-        query: {
-            tab: 'zdravstveno' //,
-        } //query zagrada
+        query: { tab: 'zdravstveno' } //query zagrada
     }) //router.replace zagrada
 } // closePage
 
@@ -316,9 +313,7 @@ async function saveClientHealth() {
         // Povratak na karticu zdravstveno i prikaz podataka
         router.replace({
             path: `/dashboard/clients/${clientId.value}`,
-            query: {
-                tab: 'zdravstveno' //,
-            } //query zagrada
+            query: { tab: 'zdravstveno' } //query zagrada
         }) //router.replace zagrada
 
     } catch (error) {
