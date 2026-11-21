@@ -208,7 +208,7 @@ class MeasurementService {
         // Prekid spremanja ako datum ne postoji
         if (!isRealDate) {
             throw new Error('Datum mjerenja ne postoji u kalendaru')
-        } //if zagradda
+        } //if zagrada
             //prekid spremanja ako je datum u budućnosti
         if (parsedDate > new Date()) { throw new Error('Datum mjerenja ne može biti u budućnosti') }
 

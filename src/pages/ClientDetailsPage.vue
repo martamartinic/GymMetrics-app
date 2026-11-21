@@ -53,7 +53,7 @@
                         class="client-tab"
                         :class="{ 'client-tab-active': activeTab === 'zdravstveno' }"
                         @click="activeTab = 'zdravstveno'"
-                        > ZD stanje
+                        > Zdrav. stanje
                     </button>
 
                     <button
@@ -61,7 +61,7 @@
                         class="client-tab"
                         :class="{ 'client-tab-active': activeTab === 'krvnaSlika' }"
                         @click="activeTab = 'krvnaSlika'"
-                        > K slika
+                        > Krvna slika
                     </button>
 
                     <button
@@ -376,20 +376,16 @@
                       <template v-else-if="activeTab === 'zdravstveno'">
                           <ClientHealthTab v-if="client" :client="client" />
                       </template> 
+
+                      <!-- TAB KRVNA SLIKA -->
+                      <template v-else-if="activeTab === 'krvnaSlika'">
+                        <ClientBloodTestTab v-if="client" :client="client" />
+                      </template>
                       
-                      <!-- TAB ZDRAVSTVENO STANJE: -->                       
+                      <!-- TAB PREHRANA: -->                       
                         <template v-else-if="activeTab === 'prehrana'">
                             <ClientNutritionTab v-if="client" :client="client" />
                         </template> 
-
-                     <!--OSTALI TABOVI -->
-                     <template v-else>
-                        <!-- privremeni sadržaj ostalih tabova Kasnije se povezuje sa odgovarajućim tablicama i servisima -->
-                         <div class="coming-soon-container">
-                            <div class="coming-soon-title"> {{ activeTabLabel }} </div>
-                            <div class="coming-soon-text" >SADRŽAJ OVOG TAB-A BIT ĆE IMPLEMENTIRAN KASNIJE </div>
-                         </div>
-                     </template>
 
                  </template>
 
@@ -432,6 +428,8 @@ import ClientMeasurementsTab from '@/components/ClientMeasurementsTab.vue'
 import ClientTestTab from '@/components/ClientTestsTab.vue'
 //komponenta za prikaz zd stanja odabranog klijenta - tab zd stanje
 import ClientHealthTab from '@/components/ClientHealthTab.vue'
+//komponenta za prikaz k slike odabranog klijenta - tab k slika
+import ClientBloodTestTab from '@/components/ClientBloodTestTab.vue'
 //komponenta za prikaz prehrane odabranog klijenta - tab prehrana
 import ClientNutritionTab from '@/components/ClientNutritionTab.vue'
 
@@ -444,7 +442,6 @@ import RatingLineChart from '@/components/RatingLineChart.vue'
 //trenutno otvoren tab
 const allowedTabs = ['treninzi', 'mjerenja', 'testovi', 'zdravstveno', 'krvnaSlika', 'prehrana']
 const activeTab = ref(allowedTabs.includes(route.query.tab) ? route.query.tab : 'treninzi')      ///otvara se trenutno odabrani tab iz URL-a, ako ga nema ili je neispravan otvara se defaultni treninzi
-//const activeTab = ref( route.query.tab === 'testovi' ? 'mjerenja' : 'treninzi')
 
 //podaci trenutno otvorenog klijenta
 const client = ref(null)
@@ -540,6 +537,7 @@ const visibleTrainings = computed(() => {
 }) //const visibleTrainings zagrada
 
 //tekst trenutno aktivnog tab-a
+/*
 const activeTabLabel = computed(() => {
     //pr. ako je otvoren tab treninzi onda se prikazuje values za treninge, ako je za mjerenja onda mjerenja itd.
     if(activeTab.value === 'treninzi') {
@@ -561,6 +559,7 @@ const activeTabLabel = computed(() => {
     return 'Prehrana'
 
 }) //const activeTabLabel zagrada
+*/
 
 //ZATVARANJE EKRANA:
 //funkcija za povrat na prethodni ekran

@@ -922,7 +922,7 @@ class DatabaseService {
             ('Elektroliti S magnezij', 'mmol/L', 0.65, 1.05),
             ('Jetreni enzim S Aspartat aminotransfereza AST', 'U/L', 11, 38),
             ('Jetreni enzim S Alanin aminotransfereza ALT', 'U/L', 12, 48),
-            ('Jetreni enzim S Gama glutamiltransferezsa GGT', 'U/L', 11, 55),
+            ('Jetreni enzim S Gama glutamiltransfereza GGT', 'U/L', 11, 55),
             ('Upale CRP', 'mg/L', NULL, 5),
             ('S Kolesterol ukupni', 'mmol/L', NULL, 5.0),
             ('S Kolesterol HDL', 'mmol/L', 1.0, NULL),
