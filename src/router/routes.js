@@ -81,10 +81,20 @@ const routes = [
           component: () => import('@/pages/AddClientNutritionPage.vue')
         },
 
-      // {
-      //   path: 'trainingTypes', 
-      //   component: () => import('@/pages/TrainingTypesPage.vue'),
-      // },
+        {
+          path: 'vrste-treninga', //'trainingTypes', 
+          component: () => import('@/pages/TrainingTypesExercisesPage.vue'),
+        },
+        //ruta za unos nove vrste treninga - podekran popisa vrsta treninga i pripadajućih vježbi
+        {
+          path: 'vrste-treninga/newTrainingType',
+          component: () => import('@/pages/AddNewTrainingTypePage.vue'),
+        },
+        //ruta za unos nove vježbe za vrstu(e) treninga - podekran popisa vrsta treninga i pripadajućih vježbi
+        {
+          path: 'vrste-treninga/newExercise',
+          component: () => import('@/pages/AddNewExercisePage.vue'),
+        },
 
       // {
       //   path: 'calendar',
@@ -97,6 +107,7 @@ const routes = [
       // },
 
      ], //Children zagrada
+
   },
 
     // Always leave this as last one,
